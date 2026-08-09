@@ -1,0 +1,811 @@
+#!/usr/bin/env python3
+"""Render read-only agent-config generations and link them into Codex."""
+
+import argparse
+import filecmp
+import os
+import re
+import shutil
+import stat
+import sys
+import tempfile
+import time
+from dataclasses import dataclass, field
+from datetime import date
+from pathlib import Path
+
+LAYER_PATTERN = re.compile(r"^\d+-[A-Za-z0-9][A-Za-z0-9._-]*$")
+GENERATION_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2})__(\d{2,})$")
+NAME_PATTERN = re.compile(r"^name\s*:\s*(['\"]?)([^'\"\s#]+)\1\s*(?:#.*)?$")
+DESCRIPTION_PATTERN = re.compile(r"^description\s*:\s*\S")
+MANAGED_MARKER = "<!-- generated: agent-config; do not edit -->"
+RESOURCES_PLACEHOLDER = "{{%_resources_%}}"
+SKILLS_PLACEHOLDER = "{{%_skills_%}}"
+GENERATION_RETENTION = 5
+
+
+class ReconcileError(Exception):
+    """A configuration error that must be fixed before rendering or syncing."""
+
+
+@dataclass(frozen=True)
+class RenderPlan:
+    layers: list[Path]
+    skills: dict[str, Path]
+    resources: dict[Path, Path]
+    skill_overrides: list[tuple[str, Path, Path]]
+    resource_overrides: list[tuple[Path, Path, Path]]
+    agents: str
+    fragment_count: int
+    directories: set[Path]
+    files: dict[Path, Path]
+
+
+@dataclass(frozen=True)
+class Generation:
+    ordinal: int
+    path: Path
+
+
+@dataclass
+class LinkPlan:
+    directory: Path
+    component: str
+    removals: list[Path] = field(default_factory=list)
+    links: list[tuple[Path, Path]] = field(default_factory=list)
+    unchanged: int = 0
+
+
+@dataclass(frozen=True)
+class AgentsLinkPlan:
+    destination: Path
+    source: Path
+    remove_existing: bool
+    unchanged: bool
+
+
+def absolute_path(path: Path) -> Path:
+    """Normalize a path without following a source or destination symlink."""
+
+    return Path(os.path.abspath(os.fspath(path.expanduser())))
+
+
+def read_skill_name(skill_file: Path) -> str:
+    try:
+        lines = skill_file.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as error:
+        raise ReconcileError(f"cannot read skill: {skill_file}: {error}") from error
+
+    if not lines or lines[0].strip() != "---":
+        raise ReconcileError(f"skill has no YAML frontmatter: {skill_file}")
+
+    frontmatter: list[str] = []
+    for line in lines[1:]:
+        if line.strip() in {"---", "..."}:
+            break
+        frontmatter.append(line)
+    else:
+        raise ReconcileError(f"skill has unterminated YAML frontmatter: {skill_file}")
+
+    name: str | None = None
+    has_description = False
+    for line in frontmatter:
+        match = NAME_PATTERN.fullmatch(line)
+        if match:
+            if name is not None:
+                raise ReconcileError(f"skill has duplicate frontmatter names: {skill_file}")
+            name = match.group(2)
+        if DESCRIPTION_PATTERN.match(line):
+            has_description = True
+
+    if name is None:
+        raise ReconcileError(f"skill has no frontmatter name: {skill_file}")
+    if not has_description:
+        raise ReconcileError(f"skill has no frontmatter description: {skill_file}")
+    if name != skill_file.parent.name:
+        raise ReconcileError(
+            f"skill name {name!r} does not match directory {skill_file.parent.name!r}: {skill_file}"
+        )
+    return name
+
+
+def discover_layers(config_dir: Path) -> list[Path]:
+    if not config_dir.is_dir():
+        raise ReconcileError(f"missing agent-config directory: {config_dir}")
+
+    sections_root = config_dir / "sections"
+    if sections_root.is_symlink():
+        raise ReconcileError(f"symlinked source sections are not supported: {sections_root}")
+    if not sections_root.exists():
+        raise ReconcileError(f"missing agent-config sections directory: {sections_root}")
+    if not sections_root.is_dir():
+        raise ReconcileError(f"agent-config sections path is not a directory: {sections_root}")
+
+    layers: list[Path] = []
+    for entry in sections_root.iterdir():
+        if not LAYER_PATTERN.fullmatch(entry.name):
+            continue
+        if entry.is_symlink():
+            raise ReconcileError(f"symlinked source layers are not supported: {entry}")
+        if entry.is_dir():
+            layers.append(entry)
+    return sorted(layers, key=lambda entry: entry.name)
+
+
+def discover_skills(layers: list[Path]) -> tuple[dict[str, Path], list[tuple[str, Path, Path]]]:
+    desired: dict[str, Path] = {}
+    overrides: list[tuple[str, Path, Path]] = []
+
+    for layer in layers:
+        skills_root = layer / "skills"
+        if not skills_root.exists():
+            continue
+        if skills_root.is_symlink() or not skills_root.is_dir():
+            raise ReconcileError(f"skill root is not a regular directory: {skills_root}")
+
+        for entry in sorted(skills_root.iterdir(), key=lambda item: item.name):
+            if entry.name.startswith("."):
+                continue
+            if entry.is_symlink():
+                raise ReconcileError(f"symlinked skill directories are not supported: {entry}")
+            if not entry.is_dir():
+                continue
+            skill_file = entry / "SKILL.md"
+            if not skill_file.is_file() or skill_file.is_symlink():
+                if (
+                    not skill_file.exists()
+                    and not skill_file.is_symlink()
+                    and all(child.is_dir() and not child.is_symlink() for child in entry.rglob("*"))
+                ):
+                    continue
+                raise ReconcileError(f"skill directory has no regular SKILL.md: {entry}")
+            name = read_skill_name(skill_file)
+            source = absolute_path(entry)
+            if name in desired:
+                overrides.append((name, desired[name], source))
+            desired[name] = source
+
+    return desired, overrides
+
+
+def discover_resources(
+    layers: list[Path],
+) -> tuple[dict[Path, Path], list[tuple[Path, Path, Path]]]:
+    desired: dict[Path, Path] = {}
+    overrides: list[tuple[Path, Path, Path]] = []
+
+    for layer in layers:
+        resources_root = layer / "resources"
+        if not resources_root.exists():
+            continue
+        if resources_root.is_symlink() or not resources_root.is_dir():
+            raise ReconcileError(f"resource root is not a regular directory: {resources_root}")
+
+        for entry in sorted(
+            resources_root.rglob("*"),
+            key=lambda item: item.relative_to(resources_root).as_posix(),
+        ):
+            if entry.is_symlink():
+                raise ReconcileError(f"symlinked resources are not supported: {entry}")
+            if entry.is_dir():
+                continue
+            if not entry.is_file():
+                raise ReconcileError(f"resource is not a regular file: {entry}")
+
+            relative = entry.relative_to(resources_root)
+            if relative.parts[0] == "references":
+                raise ReconcileError(
+                    f"place grouped resources directly under resources, "
+                    f"without a references directory: {entry}"
+                )
+            source = absolute_path(entry)
+            conflicts = [
+                previous
+                for previous in desired
+                if relative == previous
+                or relative.is_relative_to(previous)
+                or previous.is_relative_to(relative)
+            ]
+            for previous in conflicts:
+                overrides.append((previous, desired.pop(previous), source))
+            desired[relative] = source
+
+    return desired, overrides
+
+
+def render_agents(
+    config_dir: Path,
+    layers: list[Path],
+    resources_dir: Path,
+    skills_dir: Path,
+) -> tuple[str, int]:
+    sections = [MANAGED_MARKER, "# Global agent instructions"]
+    fragments: dict[str, Path] = {}
+    fragment_count = 0
+
+    for layer in layers:
+        fragments_root = layer / "AGENTS.md.d"
+        if not fragments_root.exists():
+            continue
+        if fragments_root.is_symlink() or not fragments_root.is_dir():
+            raise ReconcileError(
+                f"config fragment root is not a regular directory: {fragments_root}"
+            )
+
+        for fragment in fragments_root.glob("*.md"):
+            if fragment.is_symlink():
+                raise ReconcileError(f"symlinked config fragments are not supported: {fragment}")
+            if not fragment.is_file():
+                continue
+            fragments[fragment.name] = fragment
+
+    for _, fragment in sorted(fragments.items()):
+        try:
+            contents = fragment.read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeError) as error:
+            raise ReconcileError(f"cannot read config fragment: {fragment}: {error}") from error
+        contents = contents.replace(RESOURCES_PLACEHOLDER, os.fspath(resources_dir))
+        contents = contents.replace(SKILLS_PLACEHOLDER, os.fspath(skills_dir))
+        sections.append(f"<!-- source: {fragment.relative_to(config_dir).as_posix()} -->")
+        if contents:
+            sections.append(contents)
+        fragment_count += 1
+
+    return "\n\n".join(sections) + "\n", fragment_count
+
+
+def effective_codex_dir(codex_dir: Path | None) -> Path:
+    if codex_dir is None:
+        configured = os.environ.get("CODEX_HOME")
+        codex_dir = Path(configured) if configured else Path.home() / ".codex"
+    return absolute_path(codex_dir)
+
+
+def build_render_plan(config_dir: Path, codex_dir: Path | None = None) -> RenderPlan:
+    layers = discover_layers(config_dir)
+    skills, skill_overrides = discover_skills(layers)
+    resources, resource_overrides = discover_resources(layers)
+    codex_dir = effective_codex_dir(codex_dir)
+    agents, fragment_count = render_agents(
+        config_dir,
+        layers,
+        codex_dir / "resources",
+        codex_dir / "skills",
+    )
+    directories = {Path("skills"), Path("resources")}
+    files: dict[Path, Path] = {}
+
+    for name, source in sorted(skills.items()):
+        skill_destination = Path("skills") / name
+        directories.add(skill_destination)
+        for entry in sorted(
+            source.rglob("*"), key=lambda item: item.relative_to(source).as_posix()
+        ):
+            if entry.is_symlink():
+                raise ReconcileError(f"symlinked skill contents are not supported: {entry}")
+            destination = skill_destination / entry.relative_to(source)
+            if entry.is_dir():
+                directories.add(destination)
+                continue
+            if not entry.is_file():
+                raise ReconcileError(f"skill contains a non-regular file: {entry}")
+            files[destination] = entry
+
+    for relative, source in sorted(resources.items(), key=lambda item: item[0].as_posix()):
+        destination = Path("resources") / relative
+        files[destination] = source
+        for parent in destination.parents:
+            if parent == Path("."):
+                break
+            directories.add(parent)
+
+    return RenderPlan(
+        layers=layers,
+        skills=skills,
+        resources=resources,
+        skill_overrides=skill_overrides,
+        resource_overrides=resource_overrides,
+        agents=agents,
+        fragment_count=fragment_count,
+        directories=directories,
+        files=files,
+    )
+
+
+def discover_generations(render_dir: Path) -> list[Generation]:
+    if render_dir.is_symlink():
+        raise ReconcileError(f"render root must not be a symlink: {render_dir}")
+    if not render_dir.exists():
+        return []
+    if not render_dir.is_dir():
+        raise ReconcileError(f"render root is not a directory: {render_dir}")
+
+    generations: dict[int, Generation] = {}
+    for entry in sorted(render_dir.iterdir(), key=lambda item: item.name):
+        if entry.name.startswith("."):
+            continue
+        if entry.name == "latest":
+            if not entry.is_symlink():
+                raise ReconcileError(f"latest generation alias is not a symlink: {entry}")
+            target = Path(os.readlink(entry))
+            if (
+                target.is_absolute()
+                or len(target.parts) != 1
+                or GENERATION_PATTERN.fullmatch(target.name) is None
+            ):
+                raise ReconcileError(
+                    f"latest generation alias must target a local generation: {entry}"
+                )
+            continue
+        match = GENERATION_PATTERN.fullmatch(entry.name)
+        if match is None:
+            raise ReconcileError(f"unexpected entry in rendered generation root: {entry}")
+        try:
+            date.fromisoformat(match.group(1))
+        except ValueError as error:
+            raise ReconcileError(f"generation has an invalid date: {entry}") from error
+        if entry.is_symlink() or not entry.is_dir():
+            raise ReconcileError(f"generation is not a regular directory: {entry}")
+        for generated in (entry, *entry.rglob("*")):
+            if generated.is_symlink():
+                raise ReconcileError(f"generation must not contain symlinks: {generated}")
+            if generated.stat().st_mode & 0o222:
+                raise ReconcileError(f"generation contains a writable path: {generated}")
+
+        ordinal = int(match.group(2))
+        if ordinal in generations:
+            raise ReconcileError(f"duplicate rendered generation ordinal: {ordinal:02d}")
+        agents_file = entry / "AGENTS.md"
+        if agents_file.is_symlink() or not agents_file.is_file():
+            raise ReconcileError(f"generation has no regular AGENTS.md: {entry}")
+        try:
+            contents = agents_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            raise ReconcileError(
+                f"cannot read generation instructions: {agents_file}: {error}"
+            ) from error
+        if not contents.startswith(MANAGED_MARKER):
+            raise ReconcileError(f"generation contains unmanaged instructions: {agents_file}")
+        generations[ordinal] = Generation(ordinal=ordinal, path=entry)
+
+    return sorted(generations.values(), key=lambda generation: generation.ordinal)
+
+
+def rendered_matches(render_dir: Path, plan: RenderPlan) -> bool:
+    if not render_dir.is_dir() or render_dir.is_symlink():
+        return False
+
+    agents_file = render_dir / "AGENTS.md"
+    if not agents_file.is_file() or agents_file.is_symlink():
+        return False
+    try:
+        if agents_file.read_text(encoding="utf-8") != plan.agents:
+            return False
+    except (OSError, UnicodeError):
+        return False
+
+    expected = plan.directories | set(plan.files) | {Path("AGENTS.md")}
+    observed: set[Path] = set()
+    for entry in render_dir.rglob("*"):
+        if entry.is_symlink() or entry.stat().st_mode & 0o222:
+            return False
+        observed.add(entry.relative_to(render_dir))
+    if render_dir.stat().st_mode & 0o222:
+        return False
+    if observed != expected:
+        return False
+
+    for directory in plan.directories:
+        if not (render_dir / directory).is_dir():
+            return False
+    for relative, source in plan.files.items():
+        destination = render_dir / relative
+        if not destination.is_file():
+            return False
+        expected_mode = stat.S_IMODE(source.stat().st_mode) & ~0o222
+        if stat.S_IMODE(destination.stat().st_mode) != expected_mode:
+            return False
+        if not filecmp.cmp(source, destination, shallow=False):
+            return False
+    return True
+
+
+def write_rendered_generation(render_dir: Path, ordinal: int, plan: RenderPlan) -> Path:
+    render_dir.mkdir(parents=True, exist_ok=True)
+    name = f"{date.today().isoformat()}__{ordinal:02d}"
+    generation = render_dir / name
+    if generation.exists() or generation.is_symlink():
+        raise ReconcileError(f"rendered generation already exists: {generation}")
+
+    with tempfile.TemporaryDirectory(
+        prefix=f".{name}.",
+        dir=render_dir,
+    ) as temporary:
+        candidate = Path(temporary) / name
+        candidate.mkdir()
+        (candidate / "AGENTS.md").write_text(plan.agents, encoding="utf-8", newline="\n")
+
+        for directory in sorted(plan.directories, key=lambda item: item.as_posix()):
+            (candidate / directory).mkdir(parents=True, exist_ok=True)
+        for relative, source in sorted(plan.files.items(), key=lambda item: item[0].as_posix()):
+            destination = candidate / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination, follow_symlinks=False)
+
+        for entry in sorted(
+            candidate.rglob("*"),
+            key=lambda item: (len(item.parts), item.as_posix()),
+            reverse=True,
+        ):
+            entry.chmod(entry.stat().st_mode & ~0o222)
+        os.replace(candidate, generation)
+        generation.chmod(generation.stat().st_mode & ~0o222)
+    return generation
+
+
+def describe_overrides(plan: RenderPlan) -> None:
+    for name, previous, winner in plan.skill_overrides:
+        print(f"skill override {name}: {previous} -> {winner}")
+    for relative, previous, winner in plan.resource_overrides:
+        print(f"resource override {relative.as_posix()}: {previous} -> {winner}")
+
+
+def render_summary(plan: RenderPlan, generation: Path | None, *, status: str) -> str:
+    generation_name = generation.name if generation is not None else "none"
+    destination = generation if generation is not None else "none"
+    return (
+        f"rendered agent-config: layers={len(plan.layers)} "
+        f"fragments={plan.fragment_count} skills={len(plan.skills)} "
+        f"resources={len(plan.resources)} generation={generation_name} "
+        f"status={status} destination={destination}"
+    )
+
+
+def latest_generation_alias_matches(render_dir: Path, generation: Path) -> bool:
+    alias = render_dir / "latest"
+    return alias.is_symlink() and os.readlink(alias) == generation.name
+
+
+def update_latest_generation_alias(render_dir: Path, generation: Path) -> None:
+    if latest_generation_alias_matches(render_dir, generation):
+        return
+
+    alias = render_dir / "latest"
+    with tempfile.TemporaryDirectory(prefix=".latest.", dir=render_dir) as temporary:
+        candidate = Path(temporary) / "latest"
+        candidate.symlink_to(generation.name, target_is_directory=True)
+        os.replace(candidate, alias)
+
+
+def perform_render(render_dir: Path, plan: RenderPlan) -> Path:
+    generations = discover_generations(render_dir)
+    latest = generations[-1] if generations else None
+    if latest is not None and rendered_matches(latest.path, plan):
+        update_latest_generation_alias(render_dir, latest.path)
+        print(render_summary(plan, latest.path, status="up-to-date"), flush=True)
+        return latest.path
+
+    ordinal = latest.ordinal + 1 if latest is not None else 1
+    generation = write_rendered_generation(render_dir, ordinal, plan)
+    update_latest_generation_alias(render_dir, generation)
+    print(render_summary(plan, generation, status="created"), flush=True)
+    return generation
+
+
+def managed_generation_link(
+    link: Path,
+    render_dir: Path,
+    *,
+    component: str,
+) -> bool:
+    if not link.is_symlink():
+        return False
+    raw_target = Path(os.readlink(link))
+    target = absolute_path(raw_target if raw_target.is_absolute() else link.parent / raw_target)
+    try:
+        relative = target.relative_to(render_dir)
+    except ValueError:
+        return False
+    if len(relative.parts) < 2 or GENERATION_PATTERN.fullmatch(relative.parts[0]) is None:
+        return False
+    if component == "AGENTS.md":
+        return len(relative.parts) == 2 and relative.parts[1] == "AGENTS.md"
+    return len(relative.parts) >= 3 and relative.parts[1] == component
+
+
+def reset_codex_links(codex_dir: Path, legacy_render_dir: Path) -> None:
+    if codex_dir.is_symlink() or (codex_dir.exists() and not codex_dir.is_dir()):
+        raise ReconcileError(f"Codex path is not a regular directory: {codex_dir}")
+
+    component_roots = {
+        component: codex_dir / component for component in ("skills", "resources")
+    }
+    for component, directory in component_roots.items():
+        if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+            raise ReconcileError(f"{component} path is not a regular directory: {directory}")
+
+    epoch = int(time.time())
+    agents_file = codex_dir / "AGENTS.md"
+    agents_backup: Path | None = None
+    if agents_file.exists() or agents_file.is_symlink():
+        if not agents_file.is_symlink() and not agents_file.is_file():
+            raise ReconcileError(f"Codex instructions are not a regular file: {agents_file}")
+        agents_backup = codex_dir / f"AGENTS.{epoch}.bak.md"
+        if agents_backup.exists() or agents_backup.is_symlink():
+            raise ReconcileError(f"backup already exists: {agents_backup}")
+
+    skill_links: list[Path] = []
+    skills_root = component_roots["skills"]
+    skills_backup: Path | None = None
+    if skills_root.is_dir():
+        skills_backup = codex_dir / f"skills.{epoch}.bak"
+        if skills_backup.exists() or skills_backup.is_symlink():
+            raise ReconcileError(f"backup already exists: {skills_backup}")
+        skill_links = [entry for entry in skills_root.iterdir() if entry.is_symlink()]
+
+    resource_links: list[Path] = []
+    resources_root = component_roots["resources"]
+    if resources_root.is_dir():
+        for entry in resources_root.iterdir():
+            if not entry.is_symlink():
+                continue
+            raw_target = Path(os.readlink(entry))
+            target = absolute_path(
+                raw_target if raw_target.is_absolute() else entry.parent / raw_target
+            )
+            if target == legacy_render_dir or target.is_relative_to(legacy_render_dir):
+                resource_links.append(entry)
+
+    if skills_backup is not None:
+        try:
+            shutil.copytree(skills_root, skills_backup, symlinks=True)
+        except (OSError, shutil.Error):
+            if skills_backup.is_dir() and not skills_backup.is_symlink():
+                shutil.rmtree(skills_backup)
+            raise
+        print(f"backed up {skills_root} to {skills_backup}")
+    if agents_backup is not None:
+        agents_file.rename(agents_backup)
+        print(f"backed up {agents_file} to {agents_backup}")
+    for link in (*skill_links, *resource_links):
+        link.unlink()
+
+    print(
+        f"reset agent-config: instructions_backed_up={int(agents_backup is not None)} "
+        f"skills_backed_up={int(skills_backup is not None)} "
+        f"skills_removed={len(skill_links)} resources_removed={len(resource_links)} "
+        f"destination={codex_dir}"
+    )
+
+
+def prune_generations(render_dir: Path, codex_dir: Path) -> None:
+    generations = discover_generations(render_dir)
+    retained = generations[-GENERATION_RETENTION:]
+    removable = generations[:-GENERATION_RETENTION]
+
+    if removable:
+        latest = generations[-1].path
+        if not latest_generation_alias_matches(render_dir, latest):
+            raise ReconcileError(
+                "latest generation alias must target the newest generation before pruning"
+            )
+
+        if codex_dir.is_symlink() or (codex_dir.exists() and not codex_dir.is_dir()):
+            raise ReconcileError(f"Codex destination is not a regular directory: {codex_dir}")
+
+        removable_names = {generation.path.name for generation in removable}
+        links: list[tuple[Path, str]] = [(codex_dir / "AGENTS.md", "AGENTS.md")]
+        for component in ("skills", "resources"):
+            directory = codex_dir / component
+            if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+                raise ReconcileError(f"{component} target is not a regular directory: {directory}")
+            if directory.is_dir():
+                links.extend((entry, component) for entry in directory.iterdir())
+
+        for link, component in links:
+            if not managed_generation_link(link, render_dir, component=component):
+                continue
+            raw_target = Path(os.readlink(link))
+            target = absolute_path(
+                raw_target if raw_target.is_absolute() else link.parent / raw_target
+            )
+            generation_name = target.relative_to(render_dir).parts[0]
+            if generation_name in removable_names:
+                raise ReconcileError(
+                    f"refusing to prune active Codex generation: {generation_name} ({link})"
+                )
+
+        for generation in removable:
+            generation.path.chmod(generation.path.stat().st_mode | 0o200)
+            for entry in generation.path.rglob("*"):
+                if entry.is_dir():
+                    entry.chmod(entry.stat().st_mode | 0o200)
+            shutil.rmtree(generation.path)
+
+    latest_name = retained[-1].path.name if retained else "none"
+    print(
+        f"pruned agent-config: kept={len(retained)} removed={len(removable)} "
+        f"latest={latest_name} destination={render_dir}"
+    )
+
+
+def expected_link(source: Path, directory: Path) -> str:
+    return os.path.relpath(source, start=directory)
+
+
+def plan_agents_link(
+    codex_dir: Path,
+    generation: Path,
+    render_dir: Path,
+) -> AgentsLinkPlan:
+    if codex_dir.is_symlink() or (codex_dir.exists() and not codex_dir.is_dir()):
+        raise ReconcileError(f"Codex destination is not a regular directory: {codex_dir}")
+    agents_file = codex_dir / "AGENTS.md"
+    source = generation / "AGENTS.md"
+    relative_target = expected_link(source, codex_dir)
+    if agents_file.is_symlink():
+        if os.readlink(agents_file) == relative_target:
+            return AgentsLinkPlan(agents_file, source, remove_existing=False, unchanged=True)
+        if managed_generation_link(agents_file, render_dir, component="AGENTS.md"):
+            return AgentsLinkPlan(agents_file, source, remove_existing=True, unchanged=False)
+        raise ReconcileError(f"refusing to replace unmanaged Codex instructions: {agents_file}")
+    if not agents_file.exists():
+        return AgentsLinkPlan(agents_file, source, remove_existing=False, unchanged=False)
+    if not agents_file.is_file():
+        raise ReconcileError(f"Codex instructions are not a regular file: {agents_file}")
+    try:
+        current = agents_file.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ReconcileError(f"cannot read Codex instructions: {agents_file}: {error}") from error
+    if current and not current.startswith(MANAGED_MARKER):
+        raise ReconcileError(f"refusing to replace unmanaged Codex instructions: {agents_file}")
+    return AgentsLinkPlan(agents_file, source, remove_existing=True, unchanged=False)
+
+
+def plan_component_links(
+    codex_dir: Path,
+    generation: Path,
+    render_dir: Path,
+    *,
+    component: str,
+) -> LinkPlan:
+    directory = codex_dir / component
+    if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+        raise ReconcileError(f"{component} target is not a regular directory: {directory}")
+
+    source_root = generation / component
+    desired = {
+        entry.name: entry for entry in sorted(source_root.iterdir(), key=lambda item: item.name)
+    }
+    plan = LinkPlan(directory=directory, component=component)
+
+    if directory.is_dir():
+        for entry in sorted(directory.iterdir(), key=lambda item: item.name):
+            if not managed_generation_link(entry, render_dir, component=component):
+                continue
+            source = desired.get(entry.name)
+            if source is None or os.readlink(entry) != expected_link(source, directory):
+                plan.removals.append(entry)
+
+    removals = set(plan.removals)
+    for name, source in desired.items():
+        link = directory / name
+        if link.is_symlink() and os.readlink(link) == expected_link(source, directory):
+            plan.unchanged += 1
+            continue
+        if link in removals:
+            plan.links.append((link, source))
+            continue
+        if link.exists() or link.is_symlink():
+            raise ReconcileError(f"refusing to replace unmanaged {component} entry: {link}")
+        plan.links.append((link, source))
+
+    return plan
+
+
+def apply_component_links(plan: LinkPlan) -> None:
+    plan.directory.mkdir(parents=True, exist_ok=True)
+    for link in plan.removals:
+        link.unlink()
+        print(f"removed {plan.component} link {link}")
+    for link, source in plan.links:
+        target = expected_link(source, plan.directory)
+        link.symlink_to(target, target_is_directory=source.is_dir())
+        print(f"linked {plan.component} {link} -> {target}")
+
+
+def sync_rendered(
+    generation: Path,
+    codex_dir: Path,
+    render_dir: Path,
+    plan: RenderPlan,
+) -> None:
+    agents_plan = plan_agents_link(codex_dir, generation, render_dir)
+    skill_plan = plan_component_links(codex_dir, generation, render_dir, component="skills")
+    resource_plan = plan_component_links(codex_dir, generation, render_dir, component="resources")
+
+    codex_dir.mkdir(parents=True, exist_ok=True)
+    if agents_plan.remove_existing:
+        agents_plan.destination.unlink()
+        print(f"removed instructions {agents_plan.destination}")
+    if not agents_plan.unchanged:
+        target = expected_link(agents_plan.source, codex_dir)
+        agents_plan.destination.symlink_to(target)
+        print(f"linked instructions {agents_plan.destination} -> {target}")
+
+    apply_component_links(skill_plan)
+    apply_component_links(resource_plan)
+    print(
+        f"synced agent-config: layers={len(plan.layers)} "
+        f"fragments={plan.fragment_count} skills={len(plan.skills)} "
+        f"resources={len(plan.resources)} generation={generation.name} "
+        f"agents={'unchanged' if agents_plan.unchanged else 'linked'} "
+        f"skills_linked={len(skill_plan.links)} "
+        f"skills_unchanged={skill_plan.unchanged} "
+        f"resources_linked={len(resource_plan.links)} "
+        f"resources_unchanged={resource_plan.unchanged} "
+        f"destination={codex_dir}"
+    )
+
+
+def run(operation: str, config_dir: Path, render_dir: Path, codex_dir: Path | None) -> int:
+    config_dir = absolute_path(config_dir)
+    render_dir = absolute_path(render_dir)
+
+    if operation == "reset":
+        if codex_dir is None:
+            raise ReconcileError("reset requires --codex-dir")
+        legacy_render_dir = absolute_path(config_dir.parent / "agent-config-rendered")
+        reset_codex_links(absolute_path(codex_dir), legacy_render_dir)
+        return 0
+
+    if operation == "prune":
+        if codex_dir is None:
+            raise ReconcileError("prune requires --codex-dir")
+        prune_generations(render_dir, absolute_path(codex_dir))
+        return 0
+
+    plan = build_render_plan(config_dir, codex_dir)
+    describe_overrides(plan)
+
+    if operation == "check":
+        generations = discover_generations(render_dir)
+        latest = generations[-1].path if generations else None
+        current = (
+            latest is not None
+            and rendered_matches(latest, plan)
+            and latest_generation_alias_matches(render_dir, latest)
+        )
+        print(render_summary(plan, latest, status="up-to-date" if current else "out-of-date"))
+        return 0 if current else 1
+
+    generation = perform_render(render_dir, plan)
+    if operation == "sync":
+        if codex_dir is None:
+            raise ReconcileError("sync requires --codex-dir")
+        sync_rendered(generation, absolute_path(codex_dir), render_dir, plan)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("operation", choices=("render", "check", "sync", "prune", "reset"))
+    parser.add_argument("--config-dir", type=Path, required=True)
+    parser.add_argument("--render-dir", type=Path, required=True)
+    parser.add_argument("--codex-dir", type=Path)
+    arguments = parser.parse_args(argv)
+
+    try:
+        return run(
+            arguments.operation,
+            arguments.config_dir,
+            arguments.render_dir,
+            arguments.codex_dir,
+        )
+    except (OSError, ReconcileError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
