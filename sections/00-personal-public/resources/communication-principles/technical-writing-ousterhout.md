@@ -1,10 +1,6 @@
 # Technical writing principles from John Ousterhout
 
-These principles adapt John Ousterhout's *A Philosophy of Software Design*
-to technical writing and public agent communication. Ousterhout discusses
-software design, naming, documentation, and reader understanding. Applying
-those ideas to agents and public messages is an adaptation, not a claim
-made by the book.
+These principles adapt John Ousterhout's *A Philosophy of Software Design* to technical writing and public agent communication. Ousterhout discusses software design, naming, documentation, and reader understanding. Applying those ideas to agents and public messages is an adaptation, not a claim made by the book.
 
 ## Do the reader's work
 
@@ -13,8 +9,7 @@ made by the book.
 - Give the reader the smallest complete explanation.
 - Supply context the reader needs but cannot see.
 - Include an action or decision only when one is actually needed.
-- Leave out background, implementation, or process details that do not
-  help the reader understand the situation.
+- Leave out background, implementation, or process details that do not help the reader understand the situation.
 
 ## Make every claim accountable
 
@@ -27,18 +22,15 @@ Keep these states distinct:
 - **Verified:** A result that has actually been checked.
 - **Unknown:** Information that is missing or uncertain.
 
-Do not describe a draft as sent, a requested approval as granted, a focused
-test as the full test suite, or a suspected cause as established.
+Do not describe a draft as sent, a requested approval as granted, a focused test as the full test suite, or a suspected cause as established.
 
 ## Describe the actual situation
 
-- Name the specific system, document, request, behavior, or person
-  responsible when that information matters.
+- Name the specific system, document, request, behavior, or person responsible when that information matters.
 - Use the same clear name for the same thing.
 - Explain what changed, who it affects, and why the reader should care.
 - Say what the evidence establishes and what remains uncertain.
-- Include the constraints, permissions, risks, and tradeoffs needed to
-  understand the result.
+- Include the constraints, permissions, risks, and tradeoffs needed to understand the result.
 - Explain an underlying cause only when it has been verified.
 
 ## Write with respect and judgment
@@ -48,8 +40,7 @@ test as the full test suite, or a suspected cause as established.
 - Match the amount of context to what the audience already knows.
 - Treat a confused reader as a signal to improve the explanation.
 - Use a principle when it helps; do not turn it into a rigid template.
-- Avoid inflated claims, formal language, invented process terms, and
-  unnecessary repetition.
+- Avoid inflated claims, formal language, invented process terms, and unnecessary repetition.
 
 ## Protect attention and trust
 

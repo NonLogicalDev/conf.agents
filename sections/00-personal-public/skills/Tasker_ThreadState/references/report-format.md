@@ -1,7 +1,6 @@
 # Thread State Report Format
 
-Use this reference to write an accurate report. Follow the user's requested
-format first. Never invent results or times.
+Use this reference to write an accurate report. Follow the user's requested format first. Never invent results or times.
 
 ## Default Report
 
@@ -39,18 +38,13 @@ _As of <verified report time>_
   - `<verified completion time>` — <completed result>.
 ```
 
-Use `- None.` for an empty section. An ordinary next action does not belong
-under operator attention. Include a real user decision there. If you cannot
-confirm a requested decision or blocker, use `- None.` instead of guessing.
-If no source establishes the goal, write `Goal not verified` instead of
-inferring one from a workstream or output.
+Use `- None.` for an empty section. An ordinary next action does not belong under operator attention. Include a real user decision there. If you cannot confirm a requested decision or blocker, use `- None.` instead of guessing. If no source establishes the goal, write `Goal not verified` instead of inferring one from a workstream or output.
 
 Show every workstream currently being worked as `active`, not just the first. Include each assigned subagent's verified full `/root/...` path. Keep unstarted work `pending`, preserve verified blockers, and mark a workstream `completed` only when its outcome is verified. If a worker is known but its path is unavailable, write `worker identity unknown`. Omit worker details when the owner is working alone.
 
 ## Requested Output Section
 
-When the user requests all outputs in one section, use that section. Preserve
-the workstream owner and the known time for every entry:
+When the user requests all outputs in one section, use that section. Preserve the workstream owner and the known time for every entry:
 
 ```markdown
 ## Outputs
@@ -64,23 +58,15 @@ the workstream owner and the known time for every entry:
 - `Sent <verified timestamp>` — [<name>](<verified link>).
 ```
 
-Do not repeat the same links in the section for current workstreams unless the
-user asks. A separate output section is valid; dropping the owner or guessing
-the time is not.
+Do not repeat the same links in the section for current workstreams unless the user asks. A separate output section is valid; dropping the owner or guessing the time is not.
 
 ## Requested Short Report
 
-When the user asks for only code changes, one workstream, or another named
-part of the work, report that part. Say what the summary covers when leaving
-something out might mislead. Do not say that other known work did not happen.
+When the user asks for only code changes, one workstream, or another named part of the work, report that part. Say what the summary covers when leaving something out might mislead. Do not say that other known work did not happen.
 
-Keep each completed result separate from a merely open, drafted, updated, or
-requested output. A sent message is complete as a message; it does not prove
-that the requested action was approved or performed.
+Keep each completed result separate from a merely open, drafted, updated, or requested output. A sent message is complete as a message; it does not prove that the requested action was approved or performed.
 
-Do not put an updated pull request, note, or document in `Recent work`
-without a verified merge, completion, or publication. A verified sent message
-may appear there as a sent message only.
+Do not put an updated pull request, note, or document in `Recent work` without a verified merge, completion, or publication. A verified sent message may appear there as a sent message only.
 
 ## Times And Links
 

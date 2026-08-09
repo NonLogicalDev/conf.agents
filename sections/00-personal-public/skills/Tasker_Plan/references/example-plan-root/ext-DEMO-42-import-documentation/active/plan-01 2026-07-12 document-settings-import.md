@@ -11,15 +11,12 @@ subject: document-settings-import
 
 # Purpose
 
-Document the accepted settings import format for existing fictional
-Linear issue `DEMO-42`.
+Document the accepted settings import format for existing fictional Linear issue `DEMO-42`.
 
 # Scope
 
-- **In scope:** the supported file format, accepted keys, and conflict
-  behavior.
-- **Out of scope:** creating a Linear issue, changing the importer, and
-  changing the local task and epic numbers.
+- **In scope:** the supported file format, accepted keys, and conflict behavior.
+- **Out of scope:** creating a Linear issue, changing the importer, and changing the local task and epic numbers.
 
 # Completion Criteria
 
@@ -48,8 +45,7 @@ Linear issue `DEMO-42`.
 # Decisions
 
 - **Decision:** Name the group after the existing fictional issue.
-  - **Rationale:** `DEMO-42` already identifies this work. Its tracker
-    number is separate from the local task and epic sequence.
+  - **Rationale:** `DEMO-42` already identifies this work. Its tracker number is separate from the local task and epic sequence.
 
 # Implementation Steps
 
@@ -60,17 +56,14 @@ Linear issue `DEMO-42`.
 
 # Work Log
 
-- [x] [[2026-07-12]]@16:30 - Recorded existing fictional issue `DEMO-42`
-  and opened the documentation plan without changing local group numbers.
+- [x] [[2026-07-12]]@16:30 - Recorded existing fictional issue `DEMO-42` and opened the documentation plan without changing local group numbers.
 
 # Validation
 
 - **Command:** `rg -n 'import|format|conflict' docs/settings-import.md`.
-- **Expected result:** The document describes supported settings and
-  conflict behavior.
+- **Expected result:** The document describes supported settings and conflict behavior.
 - **Observed result:** Not run.
-- **Interpretation:** Documentation remains unfinished until the check
-  passes and the behavior matches the existing importer.
+- **Interpretation:** Documentation remains unfinished until the check passes and the behavior matches the existing importer.
 
 # Unfinished Work
 

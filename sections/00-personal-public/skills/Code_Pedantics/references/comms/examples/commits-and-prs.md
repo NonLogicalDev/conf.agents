@@ -1,8 +1,6 @@
 # Commit And Pull Request Examples
 
-These are invented examples. Use them to recognize message shape and workflow
-mapping, not as evidence that any command ran in a real repository. Repository
-instructions and required templates still override the fallback form.
+These are invented examples. Use them to recognize message shape and workflow mapping, not as evidence that any command ran in a real repository. Repository instructions and required templates still override the fallback form.
 
 When applicable instructions require a public-agent signature, append it only to the PR description after the canonical reviewer prose. Omit it only when the user explicitly exempts that communication. Keep actual Git commit messages and PR titles unsigned.
 
@@ -58,8 +56,7 @@ generated entries without mixing discovery and mutation.
     entries.
 ```
 
-Commit 2, after adding a dry run, becomes the newest message for the entire
-branch. The PR title and canonical reviewer prose copy this message; append any required signature only to the PR description:
+Commit 2, after adding a dry run, becomes the newest message for the entire branch. The PR title and canonical reviewer prose copy this message; append any required signature only to the PR description:
 
 ```text
 feat(config-prune): add safe dry-run pruning
@@ -84,14 +81,11 @@ writing, and normal mode mutates only after validation passes.
   - Verified dry-run printed the plan and left configuration unchanged.
 ```
 
-Do not rewrite Commit 1 merely because the branch later grew. Its message was
-the cumulative branch message at that earlier point. Commit 2 is now the
-current canonical PR/squash message.
+Do not rewrite Commit 1 merely because the branch later grew. Its message was the cumulative branch message at that earlier point. Commit 2 is now the current canonical PR/squash message.
 
 ## Non-Squash Workflow
 
-Each commit stays scoped to its own diff. The PR uses the same message format,
-but it summarizes the series instead of matching either commit exactly.
+Each commit stays scoped to its own diff. The PR uses the same message format, but it summarizes the series instead of matching either commit exactly.
 
 Commit 1:
 
@@ -144,9 +138,7 @@ separates deletion planning from mutation, then exposes that plan through
 
 ## Small Change That Needs Little Explanation
 
-Omit `## What Changes` when the summary already carries the complete reviewable
-story. Keep `## Verification` by default. When there is no meaningful check,
-briefly explain why verification does not apply.
+Omit `## What Changes` when the summary already carries the complete reviewable story. Keep `## Verification` by default. When there is no meaningful check, briefly explain why verification does not apply.
 
 ```text
 docs(auth): correct callback spelling

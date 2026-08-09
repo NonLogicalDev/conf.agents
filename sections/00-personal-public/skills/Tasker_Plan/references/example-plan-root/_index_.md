@@ -2,14 +2,11 @@
 
 ## Purpose
 
-Coordinate the fictional settings-modernization plan and keep each
-workstream's execution state and plans inside its own group.
+Coordinate the fictional settings-modernization plan and keep each workstream's execution state and plans inside its own group.
 
 ## Status
 
-Active. Settings migration and import remain in progress. The existing
-fictional issue `DEMO-42` covers import documentation. The validation
-report is complete, and legacy cleanup remains as historical context.
+Active. Settings migration and import remain in progress. The existing fictional issue `DEMO-42` covers import documentation. The validation report is complete, and legacy cleanup remains as historical context.
 
 ## Tasks, epics, and existing issues
 
@@ -21,5 +18,4 @@ report is complete, and legacy cleanup remains as historical context.
 
 ## Next action
 
-Verify interruption recovery and the migration loader smoke check before
-starting settings-import implementation.
+Verify interruption recovery and the migration loader smoke check before starting settings-import implementation.

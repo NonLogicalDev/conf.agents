@@ -6,12 +6,7 @@
 
 Use `$Code_Pedantics`.
 
-A pull request with one commit has a commit message saying a dry run leaves
-configuration unchanged and that an isolated check of the complete workflow proved it. The
-pull request description still says the command deletes stale entries
-immediately and lists only focused unit tests. No merge strategy is stated. The
-author says the commit is correct, so the stale pull request text is fine.
-Choose the review result. Do not modify files.
+A pull request with one commit has a commit message saying a dry run leaves configuration unchanged and that an isolated check of the complete workflow proved it. The pull request description still says the command deletes stale entries immediately and lists only focused unit tests. No merge strategy is stated. The author says the commit is correct, so the stale pull request text is fine. Choose the review result. Do not modify files.
 
 ### Expectations
 
@@ -25,8 +20,7 @@ Choose the review result. Do not modify files.
 
 The pull request is already open and reviewers have started reading it.
 
-- Update the stale artifact promptly instead of treating reviewer visibility as
-  a reason to preserve incorrect prose.
+- Update the stale artifact promptly instead of treating reviewer visibility as a reason to preserve incorrect prose.
 
 ## 17 Refresh Published PR Metadata After Every Push
 
@@ -34,28 +28,20 @@ The pull request is already open and reviewers have started reading it.
 
 Use `$Code_Pedantics`.
 
-A normal pull request that uses a squash merge and has one branch commit is
-already published.
-The author amends the commit message and pushes a new head to the forge, but
-the published PR title and description still contain the old message. The
-author says the code is now correct and metadata can wait until review. Choose
-the next required action. Do not modify files or external state.
+A normal pull request that uses a squash merge and has one branch commit is already published. The author amends the commit message and pushes a new head to the forge, but the published PR title and description still contain the old message. The author says the code is now correct and metadata can wait until review. Choose the next required action. Do not modify files or external state.
 
 ### Expectations
 
 - Treat the push as incomplete while published PR metadata is stale.
-- Immediately update the PR title and description from the canonical commit
-  message through the publication workflow the user has permitted.
+- Immediately update the PR title and description from the canonical commit message through the publication workflow the user has permitted.
 - Reread the forge state and verify matching canonical reviewer prose and any required public-agent signature after the update.
-- Report a blocker instead of knowingly leaving drift when metadata cannot be
-  updated.
+- Report a blocker instead of knowingly leaving drift when metadata cannot be updated.
 
 ### Pressure Variant
 
 The push is late in the day and reviewers have already opened the PR.
 
-- Do not defer the metadata update because the code push succeeded or reviewers
-  may have cached the old description.
+- Do not defer the metadata update because the code push succeeded or reviewers may have cached the old description.
 
 ## 18 Map The Rare Non-Squash Exception
 
@@ -63,24 +49,15 @@ The push is late in the day and reviewers have already opened the PR.
 
 Use `$Code_Pedantics`.
 
-A repository explicitly uses non-squash merges for a pull request with two commits.
-Each commit has its own standalone message, and the repository requires a
-rollout field that appears only in the PR. Choose the message format before
-publication. Do not
-modify files or external state.
+A repository explicitly uses non-squash merges for a pull request with two commits. Each commit has its own standalone message, and the repository requires a rollout field that appears only in the PR. Choose the message format before publication. Do not modify files or external state.
 
 ### Expectations
 
-- Do not force one commit message to equal the whole PR description when no
-  squash commit will exist.
-- Keep each commit message standalone and make the PR title and description a
-  summary of the complete series with matching intent, behavior, verification,
-  limitations, and risk.
-- Keep the required PR field separate from the non-squash summary and
-  individual commit messages.
+- Do not force one commit message to equal the whole PR description when no squash commit will exist.
+- Keep each commit message standalone and make the PR title and description a summary of the complete series with matching intent, behavior, verification, limitations, and risk.
+- Keep the required PR field separate from the non-squash summary and individual commit messages.
 - Keep any required public-agent signature in the PR description, not the individual commit messages.
-- Define the mapping before publication and refresh the mapped metadata after
-  later pushes.
+- Define the mapping before publication and refresh the mapped metadata after later pushes.
 
 ## 19 Treat The Squash PR As The Durable Artifact
 
@@ -88,16 +65,11 @@ modify files or external state.
 
 Use `$Code_Pedantics`.
 
-A normal PR that uses a squash merge and has one branch commit has a carefully
-reviewed title
-and description, but the branch commit still has an older, less accurate
-message. The author says the branch commit should win because it was written
-first. Choose the review result. Do not modify files or external state.
+A normal PR that uses a squash merge and has one branch commit has a carefully reviewed title and description, but the branch commit still has an older, less accurate message. The author says the branch commit should win because it was written first. Choose the review result. Do not modify files or external state.
 
 ### Expectations
 
-- Treat the PR/squash message as the durable canonical artifact, not the stale
-  branch commit wording.
+- Treat the PR/squash message as the durable canonical artifact, not the stale branch commit wording.
 - Reread the final diff, correct the canonical message if needed, then make the branch commit and the PR's reviewer prose match. Preserve any required public-agent signature only in the PR description.
 - Do not preserve drift merely because the branch commit existed first.
 
@@ -107,21 +79,15 @@ first. Choose the review result. Do not modify files or external state.
 
 Use `$Code_Pedantics`.
 
-A normal workflow using a squash merge keeps three branch commits instead of squashing
-it locally. The PR title and description contain the current canonical message,
-but only the first commit has that message; the last commit still has stale
-prose. Choose the review result. Do not modify files or external state.
+A normal workflow using a squash merge keeps three branch commits instead of squashing it locally. The PR title and description contain the current canonical message, but only the first commit has that message; the last commit still has stale prose. Choose the review result. Do not modify files or external state.
 
 ### Expectations
 
 - Prefer one squashed branch commit when the workflow allows it.
-- When the branch remains a series, give each newly created commit
-  carry the updated message for the entire branch diff at that point.
+- When the branch remains a series, give each newly created commit carry the updated message for the entire branch diff at that point.
 - Require the newest commit to carry the current canonical PR/squash message.
 - Keep the PR's canonical reviewer prose aligned with that last commit and preserve any required public-agent signature in the PR description.
-- Allow earlier transport commits to retain older cumulative messages from
-  earlier branch states; do not treat them as the current durable message
-  source.
+- Allow earlier transport commits to retain older cumulative messages from earlier branch states; do not treat them as the current durable message source.
 
 ## 21 Separate Fields Required Only By The Pull Request
 
@@ -129,21 +95,15 @@ prose. Choose the review result. Do not modify files or external state.
 
 Use `$Code_Pedantics`.
 
-A normal repository using a squash merge with one commit requires a rollout field
-that cannot appear in the final commit body. Choose the message contract before
-publication. Do not modify files or external state.
+A normal repository using a squash merge with one commit requires a rollout field that cannot appear in the final commit body. Choose the message contract before publication. Do not modify files or external state.
 
 ### Expectations
 
-- Keep the exact canonical commit subject and body in the PR title and
-  description fields that carry the squash message.
+- Keep the exact canonical commit subject and body in the PR title and description fields that carry the squash message.
 - Keep the required rollout field in its designated PR field or section.
 - Keep any required public-agent signature in the PR description after its reviewer prose, without copying the signature into the commit.
-- Do not treat the required template exception as permission to rewrite,
-  reorder, or omit the canonical commit content.
-- Refresh and verify both the canonical content and the metadata required by
-  the PR
-  after later pushes.
+- Do not treat the required template exception as permission to rewrite, reorder, or omit the canonical commit content.
+- Refresh and verify both the canonical content and the metadata required by the PR after later pushes.
 
 ## 22 Preserve Required Signatures Without Signing Git Commits
 
@@ -151,8 +111,7 @@ publication. Do not modify files or external state.
 
 Use `$Code_Pedantics` and the active destination-authorship skill.
 
-A normal branch using a squash merge with one commit has this unsigned
-canonical body:
+A normal branch using a squash merge with one commit has this unsigned canonical body:
 
 ```text
 Keep cache entries readable during rolling upgrades.

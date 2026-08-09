@@ -1,9 +1,6 @@
 # Test Artifact Templates
 
-Use these templates when a skill repair leaves behind reusable behavioral tests.
-Adapt headings and scenario names to the target skill.
-Preserve the behavior that the test should protect,
-but do not copy the exact text of an actual failure into the saved scenario.
+Use these templates when a skill repair leaves behind reusable behavioral tests. Adapt headings and scenario names to the target skill. Preserve the behavior that the test should protect, but do not copy the exact text of an actual failure into the saved scenario.
 
 ## `tests/README.md`
 
@@ -77,8 +74,7 @@ or small-change temptation>"
 
 ## Skill Footer
 
-Add this footer to the target `SKILL.md`
-when the skill has persisted behavioral tests:
+Add this footer to the target `SKILL.md` when the skill has persisted behavioral tests:
 
 ```markdown
 ## Tests
@@ -88,6 +84,4 @@ read [tests/README.md](tests/README.md).
 Run the relevant scenarios with fresh subagents that have empty context windows.
 ```
 
-If the target skill needs a special harness,
-add one sentence after the footer command
-that names the required scenario group or harness file.
+If the target skill needs a special harness, add one sentence after the footer command that names the required scenario group or harness file.

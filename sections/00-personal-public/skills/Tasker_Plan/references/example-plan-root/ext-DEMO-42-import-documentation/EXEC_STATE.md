@@ -10,29 +10,22 @@ updated: "[[2026-07-12]]@16:30"
 
 ## Executive Summary
 
-Document the settings import format under existing fictional Linear issue
-`DEMO-42`. Keep this work separate from implementation in
-[[task-001-settings-import/EXEC_STATE.md]]. The issue number comes from
-the fictional tracker. It does not change the local task and epic sequence.
+Document the settings import format under existing fictional Linear issue `DEMO-42`. Keep this work separate from implementation in [[task-001-settings-import/EXEC_STATE.md]]. The issue number comes from the fictional tracker. It does not change the local task and epic sequence.
 
 ## Purpose
 
-Explain which settings files the fictional application accepts and how
-import conflicts are handled.
+Explain which settings files the fictional application accepts and how import conflicts are handled.
 
 ## Scope
 
-- **In scope:** the documented file format, accepted keys, and import
-  conflict behavior.
-- **Out of scope:** creating another issue, changing import behavior,
-  starting settings migration, and renumbering local groups.
+- **In scope:** the documented file format, accepted keys, and import conflict behavior.
+- **Out of scope:** creating another issue, changing import behavior, starting settings migration, and renumbering local groups.
 
 ## Existing Tracker Issue
 
 - **Linear issue:** [DEMO-42](https://example.com/linear/DEMO-42).
 - **Status:** Existing and verified within this fictional example.
-- **Relationship:** This issue identifies the work; this plan did not
-  create it.
+- **Relationship:** This issue identifies the work; this plan did not create it.
 
 ## Active Plan
 

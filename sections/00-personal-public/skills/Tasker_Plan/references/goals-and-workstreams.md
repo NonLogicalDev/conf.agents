@@ -1,16 +1,12 @@
 # Goals and Workstreams
 
-Read this reference when an existing plan needs to represent multiple
-accepted outcomes, parallel tasks, or a genuine dependency.
+Read this reference when an existing plan needs to represent multiple accepted outcomes, parallel tasks, or a genuine dependency.
 
 ## Represent the accepted work
 
-Record the user's actual intended outcome. Break substantive work into
-meaningful tasks within the accepted scope only when doing so makes the plan easier to
-understand and maintain.
+Record the user's actual intended outcome. Break substantive work into meaningful tasks within the accepted scope only when doing so makes the plan easier to understand and maintain.
 
-Preserve existing project terminology and workstream labels. Give each
-unfinished task a current status and an immediate next action.
+Preserve existing project terminology and workstream labels. Give each unfinished task a current status and an immediate next action.
 
 ## Keep the goal reference short
 
@@ -20,18 +16,12 @@ Preserve the existing goal headings and project terminology. Keep status, progre
 
 ## Record real dependencies
 
-Record a dependency only when a task truly requires a specific result from
-another task. State the blocked action, the prerequisite, and the evidence
-that will establish that it is ready.
+Record a dependency only when a task truly requires a specific result from another task. State the blocked action, the prerequisite, and the evidence that will establish that it is ready.
 
-Keep unrelated work and its current status visible. Task order, project
-conventions, and the existence of an example do not create a dependency.
+Keep unrelated work and its current status visible. Task order, project conventions, and the existence of an example do not create a dependency.
 
 ## Keep plan structure proportionate
 
-Record multiple outcomes or child plans only when the project already uses
-them or the user requests them. A broad plan can remain a single document
-when its tasks, status, decisions, and scope are understandable.
+Record multiple outcomes or child plans only when the project already uses them or the user requests them. A broad plan can remain a single document when its tasks, status, decisions, and scope are understandable.
 
-A plan describes work and records progress. It does not prescribe how to
-delegate, operate runtime tools, organize owners, or run project delivery.
+A plan describes work and records progress. It does not prescribe how to delegate, operate runtime tools, organize owners, or run project delivery.

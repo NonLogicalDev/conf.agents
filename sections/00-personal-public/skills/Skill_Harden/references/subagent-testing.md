@@ -1,86 +1,28 @@
 # Subagent Testing For Skills
 
-Use this reference before validating skill behavior with subagents,
-designing pressure tests,
-or repairing loopholes discovered during testing.
+Use this reference before validating skill behavior with subagents, designing pressure tests, or repairing loopholes discovered during testing.
 
 ## When To Test
 
-Use subagent tests for skills that enforce discipline,
-take effort to follow,
-can be rationalized away,
-or contradict immediate pressure.
+Use subagent tests for skills that enforce discipline, take effort to follow, can be rationalized away, or contradict immediate pressure.
 
-Do not pressure-test pure reference skills,
-skills without rules to violate,
-or skills agents have no incentive to bypass.
-For those,
-use retrieval,
-gap,
-or written application checks instead.
+Do not pressure-test pure reference skills, skills without rules to violate, or skills agents have no incentive to bypass. For those, use retrieval, gap, or written application checks instead.
 
 ## Test Shapes
 
-Baseline tests show what agents naturally do without the new guidance.
-Run them before writing or finalizing a new skill
-or behavior-changing edit.
-If you did not watch an agent fail without the skill,
-you do not yet know whether the skill prevents the right failure.
+Baseline tests show what agents naturally do without the new guidance. Run them before writing or finalizing a new skill or behavior-changing edit. If you did not watch an agent fail without the skill, you do not yet know whether the skill prevents the right failure.
 
-Pressure tests show whether the skill holds
-when the agent has a reason to skip,
-reinterpret,
-or minimize the guidance.
-Run them after the skill or update exists.
+Pressure tests show whether the skill holds when the agent has a reason to skip, reinterpret, or minimize the guidance. Run them after the skill or update exists.
 
-Subagent tests should be isolated.
-They test choices,
-rationalizations,
-and expected use of the skill;
-they should not mutate shared files,
-create commits,
-publish artifacts,
-deploy systems,
-or modify external state.
-If tool use is necessary,
-allow inspection without changing files,
-or use a temporary directory created for that task
-outside the target repository.
+Subagent tests should be isolated. They test choices, rationalizations, and expected use of the skill; they should not mutate shared files, create commits, publish artifacts, deploy systems, or modify external state. If tool use is necessary, allow inspection without changing files, or use a temporary directory created for that task outside the target repository.
 
 ## Skill Kinds And Test Shapes
 
-Use the test shape that matches the skill kind.
-Many skills mix kinds;
-test the behavior that carries the highest risk.
+Use the test shape that matches the skill kind. Many skills mix kinds; test the behavior that carries the highest risk.
 
-- Discipline skills:
-  force a concrete choice under pressure.
-  Examples:
-  writing tests before implementing a change,
-  release readiness,
-  verification-before-completion,
-  safety reviews,
-  and required approvals.
-- Technique and pattern skills:
-  ask for the plan,
-  diagnosis,
-  transformed snippet,
-  or patch sketch the skill would produce.
-  Examples:
-  waiting for an observed condition,
-  root-cause tracing,
-  reducing complexity,
-  defensive programming,
-  and dependency upgrade triage.
-- Reference skills:
-  ask the subagent to retrieve and apply the relevant information
-  in a written answer.
-  Examples:
-  command references,
-  API guides,
-  file-format notes,
-  schema references,
-  and style guides.
+- Discipline skills: force a concrete choice under pressure. Examples: writing tests before implementing a change, release readiness, verification-before-completion, safety reviews, and required approvals.
+- Technique and pattern skills: ask for the plan, diagnosis, transformed snippet, or patch sketch the skill would produce. Examples: waiting for an observed condition, root-cause tracing, reducing complexity, defensive programming, and dependency upgrade triage.
+- Reference skills: ask the subagent to retrieve and apply the relevant information in a written answer. Examples: command references, API guides, file-format notes, schema references, and style guides.
 
 ```text
 Use `$Skill_Name` for the scenario below,
@@ -112,13 +54,7 @@ shared-state pollution.
 
 ## Baseline Prompt Pattern
 
-For a new skill,
-do not invoke a skill for baseline tests.
-For an update,
-use the current skill before the proposed change.
-Give only the realistic task,
-constraints,
-and raw artifacts.
+For a new skill, do not invoke a skill for baseline tests. For an update, use the current skill before the proposed change. Give only the realistic task, constraints, and raw artifacts.
 
 ```text
 A user asks you to diagnose an intermittent CI test failure.
@@ -141,12 +77,7 @@ Look for failures such as:
 
 ## Pressure Scenario Pattern
 
-Combine several pressures and force an action.
-The prompt should make the shortcut attractive.
-Use concrete options,
-real constraints,
-real paths when relevant,
-and no easy option to defer the decision.
+Combine several pressures and force an action. The prompt should make the shortcut attractive. Use concrete options, real constraints, real paths when relevant, and no easy option to defer the decision.
 
 ```text
 Use `$Release_Readiness`.
@@ -165,9 +96,7 @@ Explain briefly.
 Do not execute the choice.
 ```
 
-A good result chooses the action that follows the skill's instructions,
-cites the relevant guidance,
-and avoids expanding scope without evidence.
+A good result chooses the action that follows the skill's instructions, cites the relevant guidance, and avoids expanding scope without evidence.
 
 ## Useful Pressure Types
 
@@ -208,19 +137,13 @@ Record failures in this shape:
 [Smallest skill change that should prevent the same failure.]
 ```
 
-Exact wording matters.
-Do not summarize a rationalization as "the agent made excuses"
-when the repair depends on the excuse's shape.
+Exact wording matters. Do not summarize a rationalization as "the agent made excuses" when the repair depends on the excuse's shape.
 
-For each new rationalization,
-repair the skill concretely:
+For each new rationalization, repair the skill concretely:
 
-- When repairing guidance that affects behavior, identify the general
-  rule, the observed symptom, and a nearby valid case before writing
-  the change.
+- When repairing guidance that affects behavior, identify the general rule, the observed symptom, and a nearby valid case before writing the change.
 - State what the workaround fails to preserve.
-- Use a direct negation only when the workaround is always invalid
-  across the skill's intended use cases.
+- Use a direct negation only when the workaround is always invalid across the skill's intended use cases.
 - Add the excuse to a rationalization table when the skill has one.
 - Add a red flag for wording that signals the agent is about to violate.
 - Update the description if the rationalization is a trigger symptom.
@@ -229,20 +152,15 @@ repair the skill concretely:
 Audit overfitting before treating a repair as ready:
 
 - Search the draft repair for terms copied from the observed failure.
-- Keep copied terms in a rule only when they explain behavior that should
-  remain the same across the intended use cases.
-- Move symptom details into examples,
-  red flags,
-  or retest scenarios when they describe only the case that exposed the problem.
+- Keep copied terms in a rule only when they explain behavior that should remain the same across the intended use cases.
+- Move symptom details into examples, red flags, or retest scenarios when they describe only the case that exposed the problem.
 - Test an adjacent valid case so the repair does not outlaw valid behavior.
 
-Use the smallest repair that prevents the same mistake.
-Then retest in this order:
+Use the smallest repair that prevents the same mistake. Then retest in this order:
 
 1. Rerun the exact failing scenario.
 2. Rerun a pressure variant with the same temptation.
-3. If a new rationalization appears,
-   capture its exact wording and repeat the repair loop.
+3. If a new rationalization appears, capture its exact wording and repeat the repair loop.
 
 Common red flags:
 
@@ -258,12 +176,7 @@ Common red flags:
 
 ## Meta-Test Prompt
 
-When a subagent fails despite having the skill,
-ask a follow-up that exposes whether the problem is wording,
-organization,
-or a deliberate decision to ignore the guidance.
-This diagnoses a failed scenario;
-it does not replace baseline or pressure tests.
+When a subagent fails despite having the skill, ask a follow-up that exposes whether the problem is wording, organization, or a deliberate decision to ignore the guidance. This diagnoses a failed scenario; it does not replace baseline or pressure tests.
 
 ```text
 You read the skill and still chose [failing action].
@@ -276,36 +189,24 @@ say so and explain what you ignored.
 
 Use the answer carefully:
 
-- If the subagent names missing wording,
-  add or sharpen that wording.
-- If the subagent missed an existing section,
-  move the guidance earlier or link it at the decision point.
-- If the subagent says the skill was clear,
-  explain why that excuse does not permit the action.
+- If the subagent names missing wording, add or sharpen that wording.
+- If the subagent missed an existing section, move the guidance earlier or link it at the decision point.
+- If the subagent says the skill was clear, explain why that excuse does not permit the action.
 
 ## Sufficient Testing Checklist
 
-A skill is ready when evidence shows that agents can use it,
-not merely recite it.
+A skill is ready when evidence shows that agents can use it, not merely recite it.
 
-- Baseline behavior was observed without the skill,
-  and failures were captured exactly.
+- Baseline behavior was observed without the skill, and failures were captured exactly.
 - The new or changed guidance addresses observed failures.
 - A fresh subagent ran a realistic isolated scenario with the skill.
-- Pressure tests combined multiple pressures
-  and forced a concrete choice with no easy out.
+- Pressure tests combined multiple pressures and forced a concrete choice with no easy out.
 - The same failing scenario passes after repair.
 - The passing subagent cites or relies on the relevant guidance.
-- When a subagent fails,
-  meta-testing was used to diagnose whether the skill was unclear.
+- When a subagent fails, meta-testing was used to diagnose whether the skill was unclear.
 - Mechanical validation passes.
 - Remaining risks are reported explicitly.
 
-A skill is not ready if the subagent finds a new rationalization,
-argues the skill is wrong,
-creates a hybrid workaround,
-or asks for permission while arguing for the violation.
+A skill is not ready if the subagent finds a new rationalization, argues the skill is wrong, creates a hybrid workaround, or asks for permission while arguing for the violation.
 
-If a new rationalization appears,
-the test campaign is still producing useful diagnostics.
-Patch the skill and rerun the scenario that exposed it.
+If a new rationalization appears, the test campaign is still producing useful diagnostics. Patch the skill and rerun the scenario that exposed it.

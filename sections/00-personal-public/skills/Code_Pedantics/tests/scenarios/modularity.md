@@ -6,16 +6,12 @@
 
 Use `$Code_Pedantics`.
 
-A root TypeScript component contains page markup, dialog markup, local widget
-state, shared editor state, persistence, and validation. A new dialog would add
-another large conditional block. Choose the next concrete refactor plan. Do
-not modify files.
+A root TypeScript component contains page markup, dialog markup, local widget state, shared editor state, persistence, and validation. A new dialog would add another large conditional block. Choose the next concrete refactor plan. Do not modify files.
 
 ### Expectations
 
 - Name the mixed responsibilities and choose one smallest safe extraction.
-- Prefer extracting the self-contained dialog or shared state before
-  moving UI, state, and business rules together.
+- Prefer extracting the self-contained dialog or shared state before moving UI, state, and business rules together.
 - Preserve handlers, selectors, keyboard behavior, and visible behavior.
 - Validate the actual UI flow and review the result after the first slice.
 
