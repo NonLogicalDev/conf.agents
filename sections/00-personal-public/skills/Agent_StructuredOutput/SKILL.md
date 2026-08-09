@@ -25,10 +25,10 @@ Use the appropriate skill for public messages, saved plans, delegation, mission 
 ## Label Artifacts And Artifact Links
 
 - Put a stable `<letter><number>` shorthand outside and immediately beside every artifact link and each listed artifact, such as `P1`, `B3`, or `A4`. Apply this to a single inline link, a Markdown link, a rich link, a preview, or an artifact list.
-- Keep the shorthand outside the link text so it remains visible when the interface displays a rich preview. For example: `P1: [PR #317](https://github.com/example/maple/pull/317)`.
+- Keep the shorthand outside the link text so it remains visible when the interface displays a rich preview. For example: `P1: [PR #317](https://github.com/example/maple/pull/317)`, `B3: branch dev/example/schema-fix`, and `A4: [release notes](/tmp/release-notes.md)`. Do not move the shorthand inside a Markdown link, rich-link title, or preview.
 - Choose a letter that helps the operator recognize the item when that is natural, such as `P` for a PR, `B` for a branch, `T` for a ticket, or `D` for a document. Use `A` when no clearer letter fits.
 - Keep the real PR number, link, branch name, commit, ticket, path, title, or other canonical identifier beside the shorthand. The shorthand is an alias, not a replacement.
-- Keep one shorthand for one artifact for the rest of the task. Reuse it whenever that artifact appears again, including in an inline link or rich preview. Do not renumber or recycle an earlier shorthand when a list is reordered, filtered, or expanded; give a new artifact a new unused shorthand.
+- Keep one shorthand for one artifact throughout the task. Reuse the same shorthand immediately outside the artifact whenever it returns as an inline link, Markdown link, rich link, preview, or listed artifact. Do not renumber or recycle an earlier shorthand when a list is reordered, filtered, or expanded; give a new artifact a new unused shorthand.
 - Ordinary prose without an artifact link or listed artifact does not need shorthand. Neither do links to documentation, citations, or other background sources. Keep canonical workstream markers such as `WS[03.02]` unchanged.
 
 ## Use Canonical Workstream Markers
@@ -120,7 +120,7 @@ Give each actual lifecycle event its own horizontal rule, timestamp, line, and `
 ## Verify Before Sending
 
 - Answer the actual request in plain English and at the requested length.
-- Put a stable `<letter><number>` shorthand outside and immediately beside every artifact link and each listed artifact, keep its canonical identifier visible, and reuse the shorthand later in the task.
+- Put a stable `<letter><number>` shorthand outside and immediately beside every inline, Markdown, rich, or preview artifact link and each listed artifact; keep its canonical identifier or path visible and reuse the same shorthand throughout the task.
 - Use the complete, verified `WS[xx.yy]` marker consistently when a current workstream matters.
 - Mark every running assignment `in_progress` when the runtime supports it, and keep its `[active]` label and verified `/root/...` worker path visible.
 - Preserve all three steering labels for actual steering only.

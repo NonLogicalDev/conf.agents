@@ -21,10 +21,13 @@
   - Put the main point or outcome in the parent bullet.
   - Nest supporting context, evidence, blockers, and next steps below it.
   - Keep related sibling bullets parallel.
-- Put a stable shorthand such as `P1`, `B3`, or `A4` outside and immediately beside every artifact link and each listed artifact. Apply this to inline links, Markdown links, rich links, and previews; keep the canonical identifier or path visible, and reuse the same shorthand for the rest of the task.
 - Use headings only when they help separate substantial topics. Avoid forcing headings, tables, labels, receipts, or templates onto short answers.
 - Keep replies and instructions practical. Prefer clear intent over exhaustive restrictions and defensive edge cases.
 - Remove repetition, warm-ups, unnecessary process narration, and details that do not help the reader understand, decide, or act.
+
+### Artifact references
+
+- Put a stable shorthand such as `P1`, `B3`, or `A4` outside and immediately beside every artifact link and each listed artifact. Apply this to inline links, Markdown links, rich links, and previews; keep the canonical identifier or path visible, and reuse the same shorthand for the rest of the task.
 
 ### Accuracy and sources
 

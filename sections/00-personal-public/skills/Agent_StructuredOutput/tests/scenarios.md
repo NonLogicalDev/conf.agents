@@ -525,6 +525,16 @@ The interface displays a link to issue `MAPLE-9` as a rich issue card. The opera
 - Keep the issue's canonical identifier visible.
 - Do not hide the shorthand in the link text or treat the preview's title or issue number as a substitute.
 
+### Outside-Link Placement And Reuse
+
+The earlier reply labeled pull request #317 as `P1`, branch `dev/example/schema-fix` as `B3`, and `/tmp/release-notes.md` as `A4`. The operator next asks for the same pull request as an inline Markdown link, the same branch as a rich preview, and the same release notes as a clickable artifact list.
+
+- Reuse `P1`, `B3`, and `A4` for their original artifacts throughout the follow-up.
+- Place each shorthand outside and immediately beside its inline Markdown link, rich preview, or listed artifact.
+- Keep PR #317, branch `dev/example/schema-fix`, and `/tmp/release-notes.md` visible beside their existing shorthand.
+- Reject `[P1: PR #317](https://github.com/example/maple/pull/317)` because the shorthand is hidden inside the link text.
+- Do not assign fresh labels, renumber existing artifacts, or move their shorthand into a separate legend.
+
 ### Follow-Up Case
 
 The earlier reply labeled PR #101, branch `dev/example/schema-fix`, and `/tmp/release-notes.md`. The operator adds PR #102 and asks for the same artifacts reordered by priority.
