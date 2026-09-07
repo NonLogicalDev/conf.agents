@@ -330,3 +330,32 @@ A teammate incorrectly claims that only one worker may be marked active.
 
 - **A worker path is not verified:** Keep its workstream `active` and report `worker identity unknown`. Do not invent a `/root/...` path.
 - **The owner is working alone:** Mark the workstream `active` without inventing a subagent or adding a worker entry.
+
+## 11 Treat A Standalone Question Mark As A Thread Status Request
+
+### Prompt
+
+Use `$Tasker_ThreadState`.
+
+An agent has one verified active implementation workstream, one completed validation result, and one known next check. The operator's entire next message is `?`. Explain the appropriate response without modifying files or external systems.
+
+### Expectations
+
+- Treats the standalone question mark as an explicit request for the current thread's status.
+- Reports the verified goal, active workstream, completed result, actual blockers, and next action in `$Tasker_ThreadState` style.
+- Keeps running work marked active and includes only verified worker identities when applicable.
+- Returns the status in the current thread unless another existing instruction configures a thread snapshot.
+- Does not cancel the task, create another owner or plan, invent progress, or require the operator to repeat the request.
+
+### Mid-Turn Variant
+
+The question mark arrives while an authorized check is still running.
+
+- Reports that the check is running without claiming it passed.
+- Continues the same active task after the status update.
+
+### Adjacent Valid Cases
+
+The question mark appears inside a sentence, URL, command, filename, or another request.
+
+- Applies the message's actual meaning instead of treating ordinary punctuation as the standalone status signal.

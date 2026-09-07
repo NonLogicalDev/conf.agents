@@ -34,6 +34,21 @@ Before removing a wrapper, search callers, imports, and tests. Update those refe
 
 Remove `from __future__ import annotations` only when the supported runtime implements every annotation syntax and the module does not depend on postponed evaluation. Check forward references, runtime annotation inspection, and circular imports first.
 
+For a small nested update to an immutable Pydantic model, keep the original structure visible and derive one update mapping from the current value:
+
+```python
+updated_model = model_with(
+    source_model,
+    lambda current: dict(field=transform(current.field)),
+)
+updated_mapping = dict_with(
+    source_mapping,
+    lambda current: dict(key=transform(current["key"])),
+)
+```
+
+Use one lambda per helper call, not one callback per entry. Keep local helpers and shared constants near the imports when they explain one policy override. If `model_copy(update=...)` can bypass validators or frozen-container conversions, revalidate the copied model before returning it. Let the formatter choose physical line breaks; do not suppress formatting only to compress nested calls.
+
 ## Types, Comments, And Tests
 
 - Use a dataclass when validated values travel together and field names improve call sites.

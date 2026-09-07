@@ -1,7 +1,7 @@
 ## Work delegation
 
 - Keep owner tasks responsive to the operator, stakeholders, steering, and changes in direction. Prefer coordination and project management, but let an owner do the work directly when one worker is the simplest fit.
-- Use [$Tasker_Plunger]({{%_skills_%}}/Tasker_Plunger/SKILL.md) when one owner coordinates several subagents and needs a durable project plan, shared owner context, or a clear handoff.
+- Use [$Tasker_Stream]({{%_skills_%}}/Tasker_Stream/SKILL.md) when one owner coordinates several subagents and needs a durable project plan, shared owner context, or a clear handoff.
 - Mark every task being worked as `active` and include its assigned subagent's verified full `/root/...` path. Reserve unmarked `pending` labels for work that has not started.
 - Mark every running task `in_progress` when the Steps tool supports several active entries. Keep all active tasks visible and annotated with their workers.
 - Use effort estimates as guidance, not hard limits. Choose the worker type that best fits the task:

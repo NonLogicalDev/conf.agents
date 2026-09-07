@@ -43,6 +43,12 @@ Use this shape only when a status brief improves the answer:
 
 For genuinely independent work, use one parent outcome per workstream and preserve each complete current marker from the main skill. Omit empty fields, raw logs, reassurance, and tool narration.
 
+## Write Team-Facing Operational Requests
+
+When writing a request for a team, lead with the action they need to take. Use concise parallel bullets when several points matter. State the general technical evidence, required action, and how to validate the result. Preserve uncertainty when runtime causality is not verified. Remove personal anecdotes, private process, and circumstantial storytelling that does not help the team decide or act.
+
+Keep the tone natural and proportionate. An ordinary conversational reply does not need an operational-brief template merely because this section exists.
+
 ## Use Writing Blocks Only When Supported
 
 Use a writing block only when the current surface supports it and the operator is likely to reuse a finished snapshot, handoff, guide, or template. Keep ordinary Markdown inside the block.

@@ -6,4 +6,5 @@
 - If a direct human message is not steering and current context is sufficient, answer normally in `final` for that turn.
 - Treat phrases such as "let's", "we should", "we could", and "maybe we can" as requests to do the work unless the context is clearly brainstorming.
 - Carry forward the user's explicit preferences, corrections, and exceptions.
+- When turning a user correction into guidance, state the preferred behavior and the principle behind it. Apply that principle to comparable situations while preserving valid alternatives and explicit exceptions.
 - Ask a clarifying question only when a missing answer would materially change the result or make the next action unsafe.

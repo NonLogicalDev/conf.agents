@@ -22,24 +22,24 @@ Use the appropriate skill for public messages, saved plans, delegation, mission 
 - Keep confidential material and private reasoning out of responses. Distinguish a verified fact, a current assumption, and an unfinished action.
 - Read [references/operator-writing.md](references/operator-writing.md) only when the answer requires complex sections, annotated source lists, reusable writing blocks, or a separate final receipt and summary.
 
-## Label Artifacts And Artifact Links
+## Keep Internal Artifact Labels Private
 
-- Put a stable `<letter><number>` shorthand outside and immediately beside every artifact link and each listed artifact, such as `P1`, `B3`, or `A4`. Apply this to a single inline link, a Markdown link, a rich link, a preview, or an artifact list.
-- Keep the shorthand outside the link text so it remains visible when the interface displays a rich preview. For example: `P1: [PR #317](https://github.com/example/maple/pull/317)`, `B3: branch dev/example/schema-fix`, and `A4: [release notes](/tmp/release-notes.md)`. Do not move the shorthand inside a Markdown link, rich-link title, or preview.
-- Choose a letter that helps the operator recognize the item when that is natural, such as `P` for a PR, `B` for a branch, `T` for a ticket, or `D` for a document. Use `A` when no clearer letter fits.
-- Keep the real PR number, link, branch name, commit, ticket, path, title, or other canonical identifier beside the shorthand. The shorthand is an alias, not a replacement.
-- Keep one shorthand for one artifact throughout the task. Reuse the same shorthand immediately outside the artifact whenever it returns as an inline link, Markdown link, rich link, preview, or listed artifact. Do not renumber or recycle an earlier shorthand when a list is reordered, filtered, or expanded; give a new artifact a new unused shorthand.
-- Ordinary prose without an artifact link or listed artifact does not need shorthand. Neither do links to documentation, citations, or other background sources. Keep canonical workstream markers such as `WS[03.02]` unchanged.
+- Internal artifact shorthand may remain in private task state when it is already established, but do not invent or surface it by default in operator replies. Use the real PR number, link, branch name, commit, ticket, path, or title.
+- Use an internal shorthand in chat only when the operator explicitly asks for a private-only mapping. Keep the canonical identifier or path visible and reuse one label for one artifact within that private mapping.
+- Do not put internal artifact or workstream shorthand such as `P1`, `B3`, `A4`, `T3`, or `WS[03.02]` into public or team-facing material. Slack messages and copyable drafts, Linear issues, pull request descriptions and comments, and shared documents or sites should use descriptive names, canonical identifiers, and direct links.
+- Treat a copyable public or team-facing draft as public material even when it is composed inside private task chat. Translate private labels found in the prompt or source notes before returning the draft; do not preserve them for traceability.
+- A plain answer, status, verified result, or single Slack link does not need shorthand. Do not add a private alias merely because one artifact or link appears.
+- Ordinary prose without a useful private artifact distinction does not need shorthand. Neither do documentation links, citations, or other background sources.
 
 ## Use Canonical Workstream Markers
 
-This skill defines the workstream markers. Use the complete `WS[xx.yy]` marker for a current workstream step in prose, steering, snapshots, durable references, lifecycle descriptions, and the Steps UI.
+This skill defines the workstream markers. Use the complete `WS[xx.yy]` marker for a current workstream step in private task prose, steering, snapshots, private durable references, lifecycle descriptions, and the Steps UI. Keep it out of public or team-facing material.
 
 - `xx` is the stable workstream lane. Write it as two digits and add a leading zero when necessary.
 - `yy` is the current step in that lane. Write it as two digits and add a leading zero when necessary.
 - Assign an independent workstream an available lane. Preserve that lane across reprioritization, display changes, owner handoffs, and step changes.
 - Advance `yy` as that same lane progresses. Insert a newly discovered prerequisite before pending work when needed. Never renumber another lane or rewrite an already completed step to make the display convenient.
-- A workstream's durable owner, plan, Slack thread, Linear issue, and other existing destinations remain associated with its stable lane. Advancing `WS[03.01]` to `WS[03.02]` changes the current step; it does not create another workstream, owner, plan, conversation, or external artifact.
+- A workstream's durable owner, plan, private coordination references, and other existing destinations remain associated with its stable lane. Advancing `WS[03.01]` to `WS[03.02]` changes the current step; it does not create another workstream, owner, plan, conversation, or external artifact.
 - Use a current marker that you can verify. Do not invent a step or shorten a current workstream marker to `WS03`, `WSNN`, or `WS03:`.
 - Other skills consume these markers; they do not define another numbering convention.
 
@@ -120,7 +120,9 @@ Give each actual lifecycle event its own horizontal rule, timestamp, line, and `
 ## Verify Before Sending
 
 - Answer the actual request in plain English and at the requested length.
-- Put a stable `<letter><number>` shorthand outside and immediately beside every inline, Markdown, rich, or preview artifact link and each listed artifact; keep its canonical identifier or path visible and reuse the same shorthand throughout the task.
+- Do not invent or surface an internal `<letter><number>` shorthand in an ordinary operator reply. Preserve it only in an explicitly requested private-only mapping, with the canonical identifier or path visible. Keep internal shorthand out of public or team-facing material.
+- Before returning a copyable public or team-facing draft, scan it for internal aliases, workstream markers, and private worker paths from the prompt or private state and translate them into descriptive names or canonical identifiers. Do not add shorthand to an ordinary answer or a lone link.
+- Keep ordinary private Codex assistant/user messages, agent-to-agent messages, task-to-task coordination, status updates, and handoffs unsigned because the runtime supplies source identity. A copyable draft for an external or team-facing destination remains covered by that destination's required signature rule even when returned inside private task chat.
 - Use the complete, verified `WS[xx.yy]` marker consistently when a current workstream matters.
 - Mark every running assignment `in_progress` when the runtime supports it, and keep its `[active]` label and verified `/root/...` worker path visible.
 - Preserve all three steering labels for actual steering only.

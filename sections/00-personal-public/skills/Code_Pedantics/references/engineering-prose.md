@@ -18,7 +18,7 @@ Name who will read the artifact and what they need to decide, do, or understand.
 
 Preserve facts, uncertainty, exact technical names, required templates, links, signatures, and the author's useful voice. Do not make a prose cleanup stronger than the evidence.
 
-For external artifacts, keep internal coordination private. Code comments, READMEs, commit messages, pull request descriptions, Slack, and Linear should not expose private plan names or numbers, task conversation, coordinator instructions, hidden sequencing rationale, or agent reasoning. Translate the relevant fact into the behavior, contract, evidence, or risk a new reader needs. Omit private context that does not change the reader's decision.
+For external artifacts, keep internal coordination private. Code comments, READMEs, commit messages, pull request descriptions and comments, Slack messages and copyable drafts, Linear or other tracker descriptions, operational requests, and shared documents or sites should not expose private plan names or numbers, internal artifact aliases such as `P1` or `A4`, workstream markers such as `WS[03.02]`, task conversation, coordinator instructions, hidden sequencing rationale, or agent reasoning. A copyable draft remains external prose even when it is prepared inside private task chat. Use descriptive names, canonical identifiers, and direct links. Translate private labels found in source notes or the prompt rather than copying them for traceability. Translate the relevant fact into the behavior, contract, evidence, or risk a new reader needs. Omit private context that does not change the reader's decision.
 
 ## Common Prose Pass
 
@@ -81,6 +81,10 @@ Do not bury the decision under discovery history. Keep rejected approaches only 
 Preserve the permitted destination, recipient, factual evidence, uncertainty, canonical links, attribution, and required signature. When asking for action, make one clear request to one destination.
 
 Use this reference to improve wording only. It does not give permission to send or forward a message, write to another service, or claim that any action or check took place.
+
+For a work tracker, write for the implementer who has not seen the conversation. State the work, desired behavior, accepted scope, and completion criteria. Do not turn the description into a recap of what the user asked, the agent's private process, or personal anecdotes.
+
+For a team-facing operational request, state the request first. Use concise bullets when several parallel points matter, include general technical evidence, name the required action and validation, and preserve uncertainty when causality is not verified. Keep the tone natural rather than forcing a formal template onto ordinary conversation.
 
 ## Keep Prose Durable
 

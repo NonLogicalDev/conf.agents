@@ -46,8 +46,6 @@ Keep each section within its intended scope. Material intended for public releas
 
 Export only explicitly approved public source files. Do not export rendered generations, installed links, other sections, repository history, caches, or source symlinks. A public checkout should remain useful without access to the workspace that produced it.
 
-A full source workspace may provide `just export-public` to refresh a separate public checkout. That command is a source-workspace operation, not a requirement or command supplied by a standalone public checkout. Exporting does not commit, push, publish, render, or activate configuration.
-
 ## Rendered generations
 
 Generated configuration lives directly under `${XDG_STATE_HOME:-$HOME/.local/state}/agent-config/`:

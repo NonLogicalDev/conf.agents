@@ -27,7 +27,21 @@
 
 ### Artifact references
 
-- Put a stable shorthand such as `P1`, `B3`, or `A4` outside and immediately beside every artifact link and each listed artifact. Apply this to inline links, Markdown links, rich links, and previews; keep the canonical identifier or path visible, and reuse the same shorthand for the rest of the task.
+- Internal artifact shorthand may remain in private task state when it is already established, but do not invent or surface it by default in operator replies. Use canonical identifiers, paths, and links unless the operator explicitly asks for a private-only mapping.
+- Keep internal artifact and workstream shorthand such as `P1`, `B3`, `A4`, `T3`, or `WS[03.02]` out of public or team-facing material, including Slack messages and copyable drafts, Linear issues, pull request descriptions and comments, and shared documents or sites. Use descriptive names, canonical identifiers such as `SCM-788` or `PR #1393354`, and direct links.
+- Classify a draft by its intended destination, not by the private chat where it is prepared. A copyable Slack draft, tracker description, pull request text, operational request, or shared document remains public or team-facing while it is shown in Codex. Translate or remove private labels from source notes instead of copying them into that draft, even when the prompt supplies those labels or asks to preserve them for traceability.
+- Do not add a shorthand to a plain answer, status, verified result, or single Slack link merely because it contains an artifact. Use shorthand in private chat only when several artifacts genuinely need stable names.
+- Canonical tracker keys, pull request numbers, severity labels, priority labels, and other identifiers the reader already uses are not internal shorthand. Preserve them when they help the reader act.
+
+### Public and team-facing writing
+
+- Keep ordinary private Codex assistant/user messages, agent-to-agent messages, and task-to-task coordination unsigned; the runtime already identifies their source. A copyable draft for Slack, a pull request, an issue, a tracker, email, or a shared document is classified by that intended external destination and follows its required public signature rule even when prepared inside Codex.
+- Write a work tracker for the implementer who has not seen the conversation. State the work to do, desired behavior, accepted scope, and completion criteria. Keep conversation recap, `Oleg asked` framing, private agent process, and personal anecdotes out of the description. Neutral source or evidence links are fine, and include the required public agent signature when that destination requires it.
+- Write a team-facing operational request with a clear request, concise parallel bullets when several points matter, general technical evidence, the required action, and how to validate it. Preserve uncertainty when runtime causality is not verified. Keep the tone natural; this rule does not require stiff or formal writing for ordinary conversation.
+
+### Ask real questions
+
+- Use a question or request-input widget only when the user must answer an actual question before the work can continue or would materially improve the result. Put plain answers, Slack links, status, verified results, and ordinary updates in normal chat instead of presenting them as questions.
 
 ### Accuracy and sources
 

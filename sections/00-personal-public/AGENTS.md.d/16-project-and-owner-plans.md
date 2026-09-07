@@ -12,7 +12,7 @@
         └── _owner/
 ```
 
-- Use [$Tasker_Plunger]({{%_skills_%}}/Tasker_Plunger/SKILL.md) when one owner coordinates subagents or maintains shared project context. Follow that skill for owner plans, workstreams, structure, and execution.
+- Use [$Tasker_Stream]({{%_skills_%}}/Tasker_Stream/SKILL.md) when one owner coordinates subagents or maintains shared project context. Follow that skill for owner plans, workstreams, structure, and execution.
 - Use [$Tasker_Plan]({{%_skills_%}}/Tasker_Plan/SKILL.md) for a standalone plan that does not need owner coordination.
 - Name a new owner `<project>__YYYY-qN__<slug>` using the verified project and the year and quarter when its work began. Preserve an existing owner name and history when the quarter changes.
 - Base an issue-backed group only on a verified existing ticket's actual team key and number. Do not invent or create a ticket for a group name; ticket numbers do not consume, restart, or change the local group sequence.

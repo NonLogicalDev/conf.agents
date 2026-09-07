@@ -1,6 +1,6 @@
 ---
 name: Code_Pedantics
-description: Use when writing, reviewing, or simplifying code, tests, engineering documents, commit messages, or review comments. Make the result clear, modular, supported by evidence, and easy for another person to review.
+description: Use when writing, reviewing, or simplifying code, tests, engineering documents, commit messages, or review comments, including an independent local review before a pull request. Make the result clear, modular, supported by evidence, and easy for another person to review.
 ---
 
 # Code Pedantics
@@ -24,11 +24,15 @@ Write each Markdown prose paragraph or list item on one source line, however wid
 - Messages to other people: keep the permitted destination, recipient, facts, uncertainty, links, attribution, and required signature. Use this skill to improve wording only. Do not send a message or claim that one was sent.
 - Private notes and plans: keep facts, decisions, and evidence intact; remove only wording that obscures them.
 
+## Review Local Code Before Publishing
+
+When the user requests a pull-request review, an independent review, behavior like `@codex review`, or a final review of code changes, read [references/review.md](references/review.md) and follow its local review workflow. Resolve the actual checkout and merge base. Respect the requested paths and applicable `AGENTS.md` instructions. Use a fresh independent reviewer when the work warrants one. Report introduced P0, P1, and P2 defects with the affected file, line, failure scenario, and evidence. Keep a review read-only unless the user also requests fixes. A local review does not require a commit, push, pull request, GitHub comment, or cloud task.
+
 ## Read General References
 
 General guidance lives in the references below. Read only the topics that match the artifact:
 
-- [references/review.md](references/review.md) for removing avoidable flaws, ordering a code review, checking when values change, and keeping code simple.
+- [references/review.md](references/review.md) for independent local pull-request reviews, actionable findings, avoidable flaws, values that change, and simple code.
 - [references/modularity.md](references/modularity.md) when a file, module, component, store, or entrypoint has mixed ownership.
 - [references/comments.md](references/comments.md) for local human rationale, documentation, user permissions, and conditions for a safe change.
 - [references/tests.md](references/tests.md) for fixtures that prove behavior, negative evidence, regression tests, and behavioral evaluators.

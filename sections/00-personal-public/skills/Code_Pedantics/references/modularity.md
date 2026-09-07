@@ -14,6 +14,16 @@ Prefer modules with one reason to change:
 
 A new module is useful when it clarifies ownership, not merely when it creates another file.
 
+## Name Authored Files By Responsibility
+
+For authored modules, scripts, and related assets, prefer a flat basename shaped as `<namespace>[_<subnamespace>][_<variant>]` followed by the normal extension. Choose a clear responsibility namespace and keep one coherent prefix for related files. Add a subnamespace or variant only when it names a real distinction; do not fill every slot mechanically.
+
+For example, a fixture family can use `fixture_store.py`, `fixture_descriptor.py`, `fixture_export.py`, and `fixture_window.py`; a fetch family can use `fetch_git.py`, `fetch_runner.py`, `fetch_catchup.py`, `fetch_legs.py`, `fetch_telemetry.py`, and `fetch_traces.py`; analysis and report families can use `analysis_results.py`, `analysis_stages.py`, `report_render.py`, and `report_comparison.html`. These are examples of the general responsibility pattern, not required package names or a framework.
+
+Tests mirror the subject while preserving framework-required prefixes, such as `test_fetch_runner.py`. Preserve conventional filenames required by the language, build system, repository, or tooling, such as `__init__.py`, `__main__.py`, `pyproject.toml`, and `README.md`.
+
+When a rename improves responsibility or family coherence, update imports, tests, documentation, and asset references that use the old name. Do not rename generated historical artifacts, unrelated files, or a whole tree merely to enforce the pattern.
+
 ## When To Act
 
 Act before adding responsibility to a file that is already too large or combines unrelated work.

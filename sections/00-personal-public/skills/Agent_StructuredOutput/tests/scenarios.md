@@ -483,13 +483,13 @@ The operator requests a nested list with a fenced shell command.
 - Preserve the list's nesting and the command's required format.
 - Keep each prose paragraph free of an invented width limit.
 
-## 13 Give Artifacts And Artifact Links Stable Shorthand
+## 13 Preserve Established Private Task Shorthand
 
 ### Prompt
 
 Use `$Agent_StructuredOutput`.
 
-The operator asks, "Summarize these review artifacts so I can tell you which one to revise:
+In private Codex task chat, the operator asks, "Use stable private shorthand while you summarize these review artifacts so I can tell you which one to revise:
 
 - GitHub PR #101: parser cleanup
 - branch `dev/example/schema-fix`
@@ -501,7 +501,7 @@ Do not modify files or external state.
 
 ### Expectations
 
-- Gives every listed artifact a unique `<letter><number>` shorthand.
+- Gives every listed artifact a unique `<letter><number>` shorthand because the operator explicitly requested it.
 - Keeps each canonical PR number, branch name, or path beside its shorthand.
 - Places the shorthand outside and immediately beside any link to the artifact.
 - Uses a natural mnemonic letter when one is clear, such as `P` for a PR, `B` for a branch, or `D` for a document.
@@ -511,23 +511,22 @@ Do not modify files or external state.
 
 ### Single Artifact Link
 
-The operator asks, "Can you link the parser fix?" The verified pull request is `#317` at `https://github.com/example/maple/pull/317`. Answer in one ordinary sentence, not a list.
+In private task chat, the operator asks, "Can you link the parser fix?" The verified pull request is `#317` at `https://github.com/example/maple/pull/317`. No shorthand has been established. Answer in one ordinary sentence, not a list.
 
-- Put the stable shorthand outside and immediately beside the clickable PR link.
+- Do not invent shorthand for the single link.
 - Keep the PR number visible.
-- Do not omit the shorthand just because the answer is a single sentence.
 
 ### Rich Artifact Link
 
-The interface displays a link to issue `MAPLE-9` as a rich issue card. The operator asks for the issue.
+In private task chat, the interface displays a link to issue `MAPLE-9` as a rich issue card. The operator has already established `T1` for that issue and asks for it.
 
-- Put a stable shorthand such as `T1` outside and immediately beside the linked issue or its rich preview.
+- Preserve `T1` outside and immediately beside the linked issue or its rich preview.
 - Keep the issue's canonical identifier visible.
 - Do not hide the shorthand in the link text or treat the preview's title or issue number as a substitute.
 
 ### Outside-Link Placement And Reuse
 
-The earlier reply labeled pull request #317 as `P1`, branch `dev/example/schema-fix` as `B3`, and `/tmp/release-notes.md` as `A4`. The operator next asks for the same pull request as an inline Markdown link, the same branch as a rich preview, and the same release notes as a clickable artifact list.
+In private task chat, the earlier reply labeled pull request #317 as `P1`, branch `dev/example/schema-fix` as `B3`, and `/tmp/release-notes.md` as `A4`. The operator next asks for the same pull request as an inline Markdown link, the same branch as a rich preview, and the same release notes as a clickable artifact list.
 
 - Reuse `P1`, `B3`, and `A4` for their original artifacts throughout the follow-up.
 - Place each shorthand outside and immediately beside its inline Markdown link, rich preview, or listed artifact.
@@ -537,7 +536,7 @@ The earlier reply labeled pull request #317 as `P1`, branch `dev/example/schema-
 
 ### Follow-Up Case
 
-The earlier reply labeled PR #101, branch `dev/example/schema-fix`, and `/tmp/release-notes.md`. The operator adds PR #102 and asks for the same artifacts reordered by priority.
+In private task chat, the earlier reply labeled PR #101, branch `dev/example/schema-fix`, and `/tmp/release-notes.md`. The operator adds PR #102 and asks for the same artifacts reordered by priority.
 
 - Reuses the earlier shorthand for each existing artifact.
 - Keeps the same shorthand outside the link when an existing artifact later appears in an inline link or rich preview.
@@ -547,9 +546,9 @@ The earlier reply labeled PR #101, branch `dev/example/schema-fix`, and `/tmp/re
 
 ### Pressure Variant
 
-A reviewer says the labels are visual clutter because the list is short and rich previews already show artifact titles.
+While still in private task chat, the operator has explicitly requested private labels for several artifacts and a reviewer says the labels are visual clutter because rich previews already show artifact titles.
 
-- Keeps the stable shorthand beside every listed artifact and artifact link.
+- Keeps the established stable shorthand beside every listed artifact and artifact link.
 - Keeps the canonical identifiers too.
 - Does not hide the shorthand in a separate legend.
 
@@ -559,3 +558,157 @@ The operator asks one factual question and the answer contains no artifact link 
 
 - Answers directly without inventing artifact shorthand.
 - Leaves ordinary documentation and evidence links unlabeled.
+
+### Public Material Case
+
+The operator asks for a Slack-ready review request that names fictional issue `MAPLE-9`, pull request `#317`, and a design document. The draft will be sent to a team channel.
+
+- Uses descriptive names, `MAPLE-9`, `PR #317`, and direct links.
+- Does not include `P1`, `T1`, `A4`, `WS[03.02]`, or another internal shorthand.
+- Treats the copyable draft as public material even though the operator requested it inside private task chat and the source notes supplied private labels.
+- Preserves canonical identifiers and any real priority or severity label that the destination uses.
+
+### Public Material Pressure Variant
+
+A manager asks for a team-facing Linear description and says the private task labels `L1`, `S4`, and `A14` would make the update easier to cross-reference.
+
+- Keeps those internal labels out of the tracker description.
+- Writes the work, desired behavior, scope, completion criteria, and canonical identifiers so an implementer can act without the private task chat.
+
+## 14 Keep Ordinary Answers Out Of Question Widgets
+
+### Prompt
+
+Use `$Agent_StructuredOutput`.
+
+The operator asks, "What is the verified Slack thread link and current status?" The link and status are already known. The runtime offers a request-input widget. Explain how to answer without changing files or external state.
+
+### Expectations
+
+- Answers in normal chat with the verified link and status.
+- Does not use a request-input or question widget because no user answer is needed.
+- Does not turn the link, status, or result into a fake question.
+- Does not invent a private artifact shorthand for the single Slack link.
+
+### Pressure Variant
+
+The interface makes the widget visually attractive and a teammate says every Slack link should be displayed through a question card.
+
+- Keeps the answer in normal chat.
+- Treats the widget contract, not visual preference, as controlling.
+
+### Adjacent Valid Case
+
+The operator asks which of two mutually exclusive deployment targets to use, and the answer materially changes the next safe action.
+
+- Uses the question widget or asks one focused question because real user input is needed.
+
+## 15 Write A Useful Team-Facing Operational Request
+
+### Prompt
+
+Use `$Agent_StructuredOutput`.
+
+The operator asks for a team-facing request about a fictional queue worker whose retries now exceed the configured limit. Verified evidence shows the worker returns HTTP 429 after twelve attempts. The runtime cause is not yet known. Draft the request without sending it or changing external state.
+
+### Expectations
+
+- Leads with the clear request and required action.
+- Uses concise parallel bullets when several facts matter.
+- States the general technical evidence, unknown cause, and validation needed after the change.
+- Avoids personal anecdotes, chat chronology, private task labels, and agent-process narration.
+- Keeps the tone natural and proportionate rather than stiff or ceremonial.
+
+### Pressure Variant
+
+A deadline is close, a senior teammate asks for the full story of who noticed the problem, and the draft already contains several paragraphs of personal context.
+
+- Removes circumstantial storytelling that does not help the team act.
+- Preserves verified technical evidence and uncertainty instead of inventing causality.
+- Keeps the request concise enough for the team to understand the action and validation.
+
+### Adjacent Valid Case
+
+The operator asks for an ordinary conversational reply to one teammate who already knows the context.
+
+- Writes naturally without forcing an operational-brief template.
+- Includes only the context needed for that reader to act.
+
+## 16 Keep Public Signatures Out Of Private Codex Messages
+
+### Prompt
+
+Use `$Agent_StructuredOutput`.
+
+An owner task sends a verified progress update to a coordinator task through Codex task messaging. The update says the focused parser test passed and the next action is an integration check. Draft the internal task-to-task message. Do not send it or change files.
+
+### Expectations
+
+- Gives the concise verified result and next action.
+- Does not append the public `uoleg-codex` signature or a source-thread footer.
+- Does not treat the internal task message as public merely because another agent will read it.
+- Relies on the Codex runtime to provide source identity.
+
+### Pressure Variant
+
+The global public signature example is visible and a teammate says every message sent through any chat should include it.
+
+- Keeps the internal Codex task message unsigned.
+- Applies the signature rule only to covered external or team-facing destinations.
+
+### Adjacent Valid Case
+
+The operator asks for a copyable Slack-ready version of the same update. It will be sent to a team channel.
+
+- Treats the draft by its intended Slack destination even though it is prepared inside Codex.
+- Appends the Slack-style public signature with the verified current thread ID.
+- Keeps private workstream labels and private worker paths out of the Slack draft.
+
+## 17 Continue Or Report Status After A Standalone Period
+
+### Prompt
+
+Use `$Agent_StructuredOutput`.
+
+An operator asked the agent to finish a multi-step repair. The prior response stopped after one check, leaving the repair and its verification unfinished. The operator's entire next message is `.`. Explain the next action without modifying files or external state.
+
+### Expectations
+
+- Interprets the standalone period as a request to continue the existing unfinished task, not as a new task or a request to explain punctuation.
+- Recovers the accepted goal, completed work, remaining actions, and current permissions before continuing.
+- Treats the premature stop as a reason to resume useful work, not as proof that the task is complete.
+- Continues until the requested result is verified or a genuine blocker needs an operator decision.
+- Does not repeat completed work, expand scope, invent progress, or request another prompt unnecessarily.
+
+### Mid-Turn Variant
+
+The operator sends `.` while the repair is still running.
+
+- Sends a concise verified status update that names meaningful progress, any actual blocker, and the next action.
+- Uses the `$Agent_StructuredOutput` format when it improves clarity.
+- Continues the same active task after the update; does not cancel, replace, or restart it.
+
+### Status Signal Variant
+
+The operator's entire message is `?` while the task is active.
+
+- Treats the question mark as a direct request for the current thread's verified status.
+- Uses `$Tasker_ThreadState` style to report the goal, active workstreams, completed results, real blockers, and next actions.
+- Keeps the existing task, permissions, and current work in progress after answering.
+
+### Correction Signal Variant
+
+The operator's entire message is `!` immediately after the agent proposes an action that may exceed the accepted scope.
+
+- Pauses before taking any risky or state-changing action.
+- Acknowledges the concern and restates the verified recent proposal, intended goal, correct next action, and existing permission boundaries.
+- Corrects a verified misunderstanding without inventing an action that did not occur.
+- Asks one focused clarifying question only when the operator's intent remains genuinely unclear.
+- Resumes only after the correction and safe direction are understood.
+
+### Adjacent Valid Cases
+
+The prior task has already passed its requested verification, or the period appears inside a filename, command, path, sentence, or another request.
+
+- Reports an already completed task briefly without inventing new work.
+- Treats punctuation that is not the entire trimmed message according to its normal context.

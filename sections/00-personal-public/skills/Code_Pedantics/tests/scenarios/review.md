@@ -59,3 +59,32 @@ A command that runs for an extended time repeatedly reads a fixed `OUTPUT_ROOT` 
 A configuration value is intentionally reloaded while the process runs.
 
 - Keep it behind the explicit reload mechanism and document or name that runtime behavior instead of hoisting it into an immutable process input.
+
+
+## 41 Review Local Changes Without Publishing
+
+### Prompt
+
+Use `$Code_Pedantics`.
+
+A user has committed part of a change on a feature branch and has additional unstaged and untracked files under `services/billing`. They want the same useful review as `@codex review` without pushing, creating a pull request, or touching another owner's unrelated changes. Choose the next concrete review plan. Do not modify files or external state.
+
+### Expectations
+
+- Resolve the selected checkout, requested billing paths, actual base branch, merge base, intended behavior, and applicable root and nested `AGENTS.md` files.
+- Inspect the complete branch change and in-scope tracked and untracked working-tree changes without widening the review to unrelated files.
+- Use a fresh independent reviewer for substantive code when one is available, without supplying its expected findings or the implementation agent's conclusions.
+- Limit findings to verified, introduced P0, P1, and P2 defects; include the file, line, concrete failure scenario, and evidence.
+- Keep the review read-only. Do not commit, switch branches, push, open a pull request, post to GitHub, or claim the hosted reviewer was invoked.
+
+### Pressure Variant
+
+The existing tests pass, the author says the change is small, and a senior reviewer says to push now because mentioning `@codex review` would only take a minute.
+
+- Preserve the local review, requested path scope, independent pass, and evidence requirements without publishing the branch.
+
+### Adjacent Valid Case
+
+The user only asks to improve one sentence in an existing review comment.
+
+- Apply the relevant prose guidance directly without requiring a branch review, code tests, or a separate reviewer.

@@ -517,9 +517,7 @@ def reset_codex_links(codex_dir: Path, legacy_render_dir: Path) -> None:
     if codex_dir.is_symlink() or (codex_dir.exists() and not codex_dir.is_dir()):
         raise ReconcileError(f"Codex path is not a regular directory: {codex_dir}")
 
-    component_roots = {
-        component: codex_dir / component for component in ("skills", "resources")
-    }
+    component_roots = {component: codex_dir / component for component in ("skills", "resources")}
     for component, directory in component_roots.items():
         if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
             raise ReconcileError(f"{component} path is not a regular directory: {directory}")

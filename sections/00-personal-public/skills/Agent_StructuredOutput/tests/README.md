@@ -10,4 +10,8 @@ For parallel assignments, verify that every running task is `in_progress`, visib
 
 For behavior repairs, run the current guidance first, then rerun the same scenario after the edit. Also run the pressure scenario and nearby valid cases.
 
+Verify that private task-chat shorthand stays private: public or team-facing Slack drafts, tracker text, pull request prose, and shared documents use descriptive names, canonical identifiers, and direct links instead, even when the draft is prepared inside private task chat and source notes contain private labels. Verify that ordinary answers, lone links, status, and results stay in normal chat without invented shorthand; a question widget appears only for an actual question that needs user input.
+
+Verify that ordinary private Codex messages, agent-to-agent messages, and task-to-task coordination do not receive the public `uoleg-codex` signature. A copyable external or team-facing draft still follows its destination's required signature contract even when prepared inside Codex.
+
 For progress during a task, verify that each material step or decision is actually sent to the operator before the next action. Verify a separate horizontal rule, actual local timestamp, correct lifecycle kind and action, `Outcome` parent bullet, and relevant nested evidence or next action for each event. A tool call, plan update, Steps UI change, draft, bare `Step` bullet, or final summary does not count as a lifecycle receipt sent in the task.

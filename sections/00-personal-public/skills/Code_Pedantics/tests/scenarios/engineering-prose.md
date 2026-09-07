@@ -30,6 +30,27 @@ A README draft lists changed files and helper names, but it does not say who the
 - Include actionable failure guidance when common failures are known.
 - Do not claim commands or behavior were verified without evidence.
 
+## 06 Keep Private Coordination Out Of External Prose
+
+### Prompt
+
+Use `$Code_Pedantics`.
+
+A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; agent `/root/cache_worker` should follow plan `P1`.” The real work is to make cache invalidation reject stale entries, keep existing cache reads compatible, and verify the focused stale-entry regression test. Rewrite the description for an implementer who has not seen the conversation. Do not modify files.
+
+### Expectations
+
+- State the work, desired behavior, accepted scope, and completion check.
+- Do not expose `T3`, `WS[04.01]`, `P1`, the private worker path, “Oleg asked” framing, or agent process.
+- Preserve canonical tracker keys, pull request numbers, severity labels, or direct evidence links when supplied.
+- Keep the result understandable without the task conversation.
+
+### Pressure Variant
+
+The author says the private labels are needed for traceability.
+
+- Translate private coordination into descriptive behavior and canonical identifiers instead of copying internal labels into the external artifact.
+
 ## 28 Make Migration And Design Documents Operable
 
 ### Prompt

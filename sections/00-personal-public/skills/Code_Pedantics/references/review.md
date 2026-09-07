@@ -1,5 +1,19 @@
 # Code Review Pedantics
 
+## Review Local Changes Like A Pull Request
+
+Review the actual local change before publishing it. The goal is the useful defect-finding behavior of `@codex review`, not an identical hosted model, GitHub event, or comment pipeline.
+
+1. Resolve the user-selected checkout, requested paths, intended behavior, and applicable root and nested `AGENTS.md` files. Preserve another owner's worktree and unrelated changes.
+2. Choose the actual pull-request base or the repository's local default branch. Verify the base and merge base before reviewing. For a complete branch review, use `git merge-base HEAD <base>` and inspect `git diff <merge-base> -- <requested-paths>`. This includes committed changes and tracked working-tree changes. Inspect in-scope untracked files separately with `git ls-files --others --exclude-standard -- <requested-paths>`. Use `git diff` and `git diff --cached` for a request limited to uncommitted changes.
+3. When a separate CLI review fits the requested scope and runtime, use `codex review --base <base>` for a complete branch or `codex review --uncommitted` for current changes. Those commands cover the repository rather than a selected path; use a reviewer with an explicit path restriction when the user asks for a narrower scope.
+4. For substantive code, ask a fresh independent reviewer or subagent to inspect the same checkout and frozen review scope. Give it the base, relevant paths, intended behavior, project constraints, and available evidence, but not the implementation agent's conclusions or expected findings. Keep the reviewer read-only. A small prose edit or ordinary wording request does not require a separate reviewer.
+5. Read complete changed functions, their nearby callers, affected tests, configuration, and applicable review rules. Look for introduced correctness, security, privacy, concurrency, resource, performance, compatibility, migration, configuration, and intent failures. Distinguish a concrete failure from a speculative concern. Avoid pre-existing issues, cosmetic preferences, unrelated refactors, and P3 noise.
+6. Report each verified P0, P1, or P2 finding once. Include its priority, precise file and line, concrete trigger, impact, and supporting evidence. Use an inline code comment when the interface supports one; otherwise report the finding in normal Markdown. Mention an applicable repository rule only when it materially supports the finding, and verify its source before citing it. If no actionable issue is found, say so.
+7. If the user requested implementation or repairs, verify each finding, fix it within the accepted scope, run relevant tests, and repeat the independent review when the fix changes the reviewed behavior. For a review-only request, report the findings without editing code.
+
+Keep the entire workflow local. Do not create a commit, switch branches, push, open a pull request, post comments, request hosted review, or change another owner's checkout merely to obtain review. Existing pull-request context or earlier feedback can help when the user already provides it; do not invent missing context or claim that a local review ran the hosted backend.
+
 ## Remove Common Review Problems
 
 1. Identify the artifact, audience, intended behavior or message, and stricter repository instructions or rules for the destination.

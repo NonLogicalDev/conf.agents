@@ -2,8 +2,8 @@
 
 Choose the smallest matching file under `scenarios/` for the guidance being changed. Run every affected category when a change crosses reference files.
 
-- Review: [`review.md`](scenarios/review.md) covers 01 wrapper removal, 08 deliberate auditability, and 30 process inputs.
-- Modularity: [`modularity.md`](scenarios/modularity.md) covers 02 safe TypeScript extraction.
+- Review: [`review.md`](scenarios/review.md) covers 01 wrapper removal, 08 deliberate auditability, 30 process inputs, and 41 independent local pull-request review.
+- Modularity: [`modularity.md`](scenarios/modularity.md) covers 02 safe TypeScript extraction and 42 responsibility-based file naming.
 - Comments: [`comments.md`](scenarios/comments.md) covers 03 reasons for permissions, 10 module documentation that leads with purpose, 31 long orchestration phases, 35 item documentation and local reasons, and 36 exposure of private plans.
 - Validation: [`validation.md`](scenarios/validation.md) covers 04 safe updater proof.
 - Engineering prose: [`engineering-prose.md`](scenarios/engineering-prose.md) covers 05 external prose, 07 README or user guide, 28 migration/design docs, and 38 natural Markdown wrapping.
