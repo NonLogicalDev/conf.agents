@@ -9,6 +9,7 @@
 - Replace vague importance, imagined certainty, unsupported specifics, and canned justification with concrete facts.
 - When something is unknown, say so. Do not invent context, motives, results, measurements, or explanations to make a story feel complete.
 - Judge a sentence by what it helps the reader understand, decide, or do, not by how impressive it sounds.
+- When simplifying, preserve who acts, what changes, when the claim applies, and whether it describes a possibility, requirement, proposal, or observed result. Shorter wording must not change the claim.
 - Apply these technical writing principles adapted from John Ousterhout:
   - **Absorb complexity:** Give the reader the smallest complete explanation.
   - **Add missing insight:** Explain the intent, consequence, or verified cause that the reader cannot infer from the visible result.

@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$SVC_Checkpoint`. The user asks for a local checkpoint. The project uses its own wrapper for version control. Explain what to do without running commands or changing files.
+Use `$VCS_Checkpoint`. The user asks for a local checkpoint. The project uses its own wrapper for version control. Explain what to do without running commands or changing files.
 
 ### Check
 
@@ -21,7 +21,7 @@ If the project uses ordinary Git, use its usual Git commit.
 
 ### Prompt
 
-Use `$SVC_Checkpoint`. A parser fix, its test, and a new fixture belong to the task. An unrelated draft also has changes. Explain what belongs in the checkpoint without changing any files.
+Use `$VCS_Checkpoint`. A parser fix, its test, and a new fixture belong to the task. An unrelated draft also has changes. Explain what belongs in the checkpoint without changing any files.
 
 ### Check
 
@@ -34,7 +34,7 @@ Use `$SVC_Checkpoint`. A parser fix, its test, and a new fixture belong to the t
 
 ### Prompt
 
-Use `$SVC_Checkpoint`. A checkpoint saves a parser fix and its test. The project has no special message style. Show the message format without creating a commit.
+Use `$VCS_Checkpoint`. A checkpoint saves a parser fix and its test. The project has no special message style. Show the message format without creating a commit.
 
 ### Check
 
@@ -50,7 +50,7 @@ If the project has its own message style, use that style instead.
 
 ### Prompt
 
-Use `$SVC_Checkpoint`. The checkout has no changes, and the user has not asked for an empty checkpoint. Explain what to do without changing files.
+Use `$VCS_Checkpoint`. The checkout has no changes, and the user has not asked for an empty checkpoint. Explain what to do without changing files.
 
 ### Check
 

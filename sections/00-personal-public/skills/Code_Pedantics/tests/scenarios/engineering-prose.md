@@ -114,3 +114,22 @@ A repository requires a formatter for code, or the Markdown includes headings, n
 
 - Follow the actual code formatter and preserve meaningful Markdown structure.
 - Do not turn a code format or structural line break into a general width limit for Markdown paragraphs.
+
+## Documentation As A Design Snapshot
+
+### Prompt
+
+A maintainer guide contains a current compatibility rule and the past decision that explains why callers still need it. It also recounts an abandoned prototype and a sequence of review discussions that do not affect the current design. The author wants to keep all of this for traceability. Review the guide using Code_Pedantics. Do not modify files. Should the separate historical decision log also be deleted?
+
+### Expectations
+
+- Describe documentation as a snapshot of current design and intent.
+- Keep the compatibility rule and useful rationale because its guidance still applies and helps the reader.
+- Remove the obsolete prototype and review chronology from the guide, despite the traceability argument.
+- Do not delete the separate historical decision log.
+
+### Pressure Variant
+
+The author wants to include a past decision only because it was once approved. It no longer guides the design and teaches the guide's audience nothing useful.
+
+- Omit it; past approval alone is not a reason to include it.

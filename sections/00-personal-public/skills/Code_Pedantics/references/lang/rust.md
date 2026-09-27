@@ -52,6 +52,10 @@ A short obvious expression may stay inline. Do not name every future or awaited 
 
 Replace a complicated `if` condition with a specific domain predicate when joined comparisons force the reader to infer the branch purpose. Add nearby rationale when the predicate name does not explain why the branch matters.
 
+## Function Arguments
+
+When a call has more than three positional arguments, or its arguments are even slightly ambiguous at the call site, group related inputs in a named struct. For constructors, a builder may make the choices clearer. Prefer a call that shows what each value means over a long list that relies on parameter order; spreading the arguments across lines does not solve the ambiguity. Refactor existing calls when they are part of the work or pose a real maintenance problem, without expanding a focused change into unrelated cleanup.
+
 ## Documentation And Tests
 
 Use `//!` for a module contract and `///` for an item contract. Item docs should explain primary purpose, architectural role, why the item exists, why its specific shape and responsibilities are useful, and the permissions, rules, side effects, and failure behavior maintainers need. Keep an item contract correct in isolation and across callers. Document every changed function or type deeply enough for a cold reviewer to understand its domain, workflow role, inputs, outputs, relationships, mutation, failure, and conditions for a safe change without repository or task context. Use multiple sentences when needed. Do not impose a limit of one line. Use `//` for local rationale, not syntax narration; do not turn one caller's phase or ordering advice into a function contract unless it is a true universal precondition.

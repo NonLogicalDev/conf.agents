@@ -19,6 +19,7 @@ Put purpose and intent first. Explain the outcome from the reader's perspective 
 Keep explanations self-contained, novice-guiding, and outcome-focused:
 
 - Explain how the relevant parts hang together.
+- Explain necessary terms and starting conditions before relying on them.
 - State any assumption the explanation depends on.
 - Distinguish observable outcomes from implementation details.
 - Assume the reader cannot see private messages or hidden reasoning.

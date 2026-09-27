@@ -76,8 +76,30 @@ Use this guide when writing messages, skill instructions, plans, notes, document
 
 ## Check the result
 
+For explanations of how something works or why it changed, also use the guidance below. A short answer does not need a longer structure when it already answers the reader's question.
+
 - Does the first sentence tell the reader the point?
 - Does each sentence say something true and useful?
 - Is every action, responsibility, and permission clear?
 - Would a familiar compound or a fuller phrase express the idea better?
 - Can the reader understand the result without the task's hidden context?
+
+## Explain causes and changes
+
+- Introduce a necessary term, starting condition, or prior behavior before reasoning that depends on it. Leave out background the reader does not need.
+- Follow the actions that lead to the result. Name who performs each action, what it affects, and any condition that controls it. After a complicated sequence, state its practical consequence.
+- Keep names stable across the explanation. Repeating a name is better than a synonym that could suggest a different person, component, or state.
+- When describing a change, mention a nearby unchanged behavior if leaving it out would make the reader apply the claim too broadly.
+- Recheck a shortened explanation against its source. Do not lose an actor, condition, responsibility, destination, or the difference between something that may happen and something that must happen. If a length limit would force a misleading answer, say so rather than silently changing the meaning.
+
+## Show relationships when prose hides them
+
+- Use a small code or configuration fragment when its structure helps the reader understand the relationship. Use a diff for a change when surrounding context remains clear; show the whole relevant fragment when the reader needs to copy it.
+- Use a table for comparisons, a tree for containment, or a timeline or diagram for sequences and handoffs when that makes the explanation easier to follow. Use a format the destination supports; do not assume a diagram renderer is available.
+- When an example helps, keep it consistent across the explanation. Preserve its names, inputs, and units, and change one relevant condition at a time so the cause of a different result is clear.
+- Label proposed code, pseudocode, omitted steps, and non-runnable examples. Separate commands from output. Explain what an example demonstrates and what it does not establish.
+- Keep examples and visuals near the claim they support. Do not repeat the same explanation in several forms unless each answers a different question.
+
+These additions about explanation order, preserving meaning, and choosing examples were informed by [Abhinav's prose-writing guide](https://github.com/abhinav/home/blob/master/.agents/docs/prose-writing.md). They are a selective synthesis, not an adoption of that guide's formatting or mandatory structure rules.
+
+The [verbatim reference snapshot](abhinav-prose-writing.md) is available for further reading. See its [source and license notice](abhinav-prose-writing.SOURCE.md); the user's active rules take precedence over this reference.

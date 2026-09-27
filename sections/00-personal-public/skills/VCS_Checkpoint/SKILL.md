@@ -1,5 +1,5 @@
 ---
-name: SVC_Checkpoint
+name: VCS_Checkpoint
 description: Save a local checkpoint with the project's usual version control tool. Include the task's pending changes and write a clear checkpoint message.
 ---
 

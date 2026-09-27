@@ -38,6 +38,8 @@ Use `{{%_resources_%}}` for installed resources and `{{%_skills_%}}` for install
 
 Each standalone skill lives in its own directory. Its `SKILL.md` frontmatter names the skill, describes when to use it, and matches the directory name. The complete winning skill directory is copied into the generated skill tree.
 
+`Agent_Guidance` is a generated mirror of the current `AGENTS.md`. Its source `SKILL.md` contains one `{{%_agents_%}}` placeholder, which the renderer replaces with the combined instructions from the selected sections. The same body is included in either the installed skills directory or the marketplace plugin. Edit the instruction fragments to update it; do not maintain a second copy in the skill. A generated mirror can contain private instructions and must not be exported as public source.
+
 Resources are grouped by purpose and copied without changing their relative paths. A later resource can replace an earlier file or directory. Optional marketplaces remain in their source sections and are not automatically installed or flattened into standalone skills.
 
 ## Public sharing

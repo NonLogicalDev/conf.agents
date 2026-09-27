@@ -88,6 +88,8 @@ For a team-facing operational request, state the request first. Use concise bull
 
 ## Keep Prose Durable
 
+Treat documentation as a snapshot of the current design and intent, not a record of how the work unfolded. Carry past decisions into it only when we intend to preserve their guidance, and explain them only when they teach the intended audience something useful about the current design. State the lasting rule or reason directly; omit obsolete decisions and chronology that do not serve the reader. This does not call for deleting historical records or private work logs.
+
 Prefer durable behavior, rationale, contracts, and stable references over logs from a single run, temporary previews, short-lived check links, or a history of debugging. Put evidence from the current run where the repository expects it.
 
 Before handoff, verify that the prose:

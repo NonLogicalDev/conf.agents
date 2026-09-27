@@ -1,6 +1,6 @@
 # Checkpoint tests
 
-Run each case in [scenarios.md](scenarios.md) with a fresh agent when one is available. Give it `$SVC_Checkpoint` and the prompt, not the answer.
+Run each case in [scenarios.md](scenarios.md) with a fresh agent when one is available. Give it `$VCS_Checkpoint` and the prompt, not the answer.
 
 Do not create commits or change files while running this check.
 
