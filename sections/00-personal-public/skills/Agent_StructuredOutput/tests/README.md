@@ -1,5 +1,7 @@
 # Agent Structured Output Behavioral Tests
 
+Test both format selection and explicit instructions. With the skill available as context, verify that ordinary replies stay plain and consulting the numbering convention does not require lifecycle receipts. When the user, AGENTS.md, or other applicable instructions request the skill or a format, verify compliance for the stated scope and duration. A standing instruction must persist across replies; a request for one report must not become a standing instruction. The format checks below apply when that format is chosen or required.
+
 Run each scenario with a fresh subagent that has an empty context window when the available tools permit. Tell the subagent to use `$Agent_StructuredOutput` and give it the scenario prompt, but not the expectations.
 
 Do not let tests change files or outside systems. Capture the raw response and compare it with the expectations afterward. A scenario passes only when every expectation holds and no contrary behavior appears.

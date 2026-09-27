@@ -1,9 +1,15 @@
 ---
 name: Agent_StructuredOutput
-description: Write clear Codex task messages in plain English. Report real progress and decisions as they happen. Use clear bullets, timestamped STEP, AGENT, and THREAD updates, steering acknowledgements, practical briefs, and sources with a short explanation. Read this skill before writing an acknowledgement, progress update, question, status report, receipt, or final answer in a Codex task.
+description: Formats for clear Codex task messages, progress updates, and status reports. Use the formats that help explain the work. Follow this skill when the user, AGENTS.md, or other applicable instructions request it, for the scope they specify.
 ---
 
 # Agent Structured Output
+
+## Choose the format for the work
+
+Choose the formats that make the message easier to follow. Plain prose suits ordinary replies; structured reports can help explain complex work. Using one format by choice does not commit later messages to the same format.
+
+When the user, AGENTS.md, or other applicable instructions explicitly request this skill or one of its formats, follow that request for its stated scope and duration. A standing instruction remains in effect until changed; do not treat it as a suggestion or limit it to one reply. A request for one report or a reference to the numbering convention applies to that part, not every format in this skill. The sections below describe how to apply each format when chosen or required.
 
 ## Outcome
 
@@ -65,7 +71,7 @@ WS[02.01] [active] /root/fixture_worker — Audit fixtures
 
 ## Acknowledge Actual Steering
 
-Before acting on a message that starts, changes, pauses, replaces, or constrains work, explain what it means:
+When using the steering format, explain what a message that starts, changes, pauses, replaces, or constrains work means before acting:
 
 ```markdown
 **Understanding:** <the exact instruction and its concrete meaning>
@@ -74,7 +80,7 @@ Before acting on a message that starts, changes, pauses, replaces, or constrains
 - **Next:** <the immediate action>
 ```
 
-Keep all three labels even when the operator requests a short steering acknowledgement. Use the full current workstream markers. Preserve existing permissions, evidence limits, and unaffected work unless the operator explicitly changes them. Distinguish additive work from an actual stop or replacement.
+When this format is selected, keep all three labels. A request for a short acknowledgement alone does not select this format. Use existing workstream markers when relevant. Preserve existing permissions, evidence limits, and unaffected work unless the operator explicitly changes them. Distinguish additive work from an actual stop or replacement.
 
 Do not claim that an owner exists, a change was made, a message was sent, or a check passed without evidence. Do not add a lifecycle receipt to an acknowledgement that only states understanding. An ordinary factual question, requested rewrite, or status answer is not steering and does not require this template.
 
@@ -90,7 +96,7 @@ When the operator asks for status, answer the actual question directly. Do not a
 
 ## Report Real Work And Lifecycles
 
-Read [references/lifecycle-receipts.md](references/lifecycle-receipts.md) before reporting material work events. Send a separate, timestamped update in the task as each verified major step or decision occurs:
+When using lifecycle receipts, read [references/lifecycle-receipts.md](references/lifecycle-receipts.md). For that scope of work, send a separate, timestamped update in the task as each verified major step or decision occurs:
 
 - Report the chosen approach before a significant action.
 - Report an important finding with its evidence and resulting decision.
@@ -118,6 +124,8 @@ Use `🟢` for `open`, `🔄` for `update`, `✅` for `close`, and `🧭` for `s
 Give each actual lifecycle event its own horizontal rule, timestamp, line, and `Outcome`. For a `THREAD` event, append `([thread](codex://threads/<verified-thread-id>))` after the description. Never claim that a sent instruction was acted on or that an agent or thread was closed, deleted, archived, or cleaned up without proof.
 
 ## Verify Before Sending
+
+Apply format checks below to the formats chosen or required for this message. Plain replies do not need steering labels, markers, or receipts unless applicable instructions require them.
 
 - Answer the actual request in plain English and at the requested length.
 - Do not invent or surface an internal `<letter><number>` shorthand in an ordinary operator reply. Preserve it only in an explicitly requested private-only mapping, with the canonical identifier or path visible. Keep internal shorthand out of public or team-facing material.

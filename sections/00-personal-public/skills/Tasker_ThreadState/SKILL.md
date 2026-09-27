@@ -56,7 +56,7 @@ A changed file is an output, not a completed result. Include it in recent work o
 
 Say when a goal, owner, required decision, or blocker is unknown. Do not infer one from a workstream name, sent request, or document title.
 
-Follow `$Agent_StructuredOutput` for workstream labels. Preserve the complete existing `WS[xx.yy]` markers. Sort by current priority without changing those markers or inventing a new workstream.
+Preserve complete existing `WS[xx.yy]` workstream markers and sort by current priority without changing those markers or inventing a new workstream. See `$Agent_StructuredOutput` for that numbering convention. This reference concerns labels; use its message formats when requested by applicable instructions or when they help explain the report.
 
 ## Follow The Requested Format
 
