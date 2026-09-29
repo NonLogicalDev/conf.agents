@@ -1,67 +1,52 @@
 # Effective prose
 
-Read this reference when writing or revising a substantive explanation, proposal, design document, status update, review, or other durable prose.
+Use this reference for substantive explanations, proposals, design documents, status updates, reviews, and other writing people will rely on.
 
 Source: [Harry G. Frankfurt, On Bullshit](https://www2.csudh.edu/ccauthen/576f12/frankfurt__harry_-_on_bullshit.pdf).
 
-## Frankfurt's central distinction
+## Truth matters more than polish
 
-Frankfurt distinguishes a lie from bullshit by how the speaker relates to truth.
+Frankfurt distinguishes lying from bullshit by whether the speaker cares about truth:
 
-- A liar believes the truth matters and deliberately tries to hide it.
-- A bullshitter chooses statements for their effect without caring enough whether they accurately describe reality.
-- A bullshit statement can be true, false, carefully written, or convincing. Its defining problem is indifference to whether the claim is justified.
-- The misleading impression is not only about the subject. It is also the impression that the speaker knows, checked, or cares about the truth.
+- A liar cares what is true and deliberately hides it.
+- A bullshitter chooses words for their effect without enough regard for whether the claims are justified. The words may be true or false, polished or clumsy, convincing or not.
 
-Good prose therefore requires more than polish, confidence, sincerity, or grammatical correctness. Its claims must remain accountable to the facts.
+Writing can mislead about both the subject and the speaker's knowledge. It can imply that the speaker knows or checked something, or cares about getting it right, without any basis for that impression. Confidence, sincerity, and good grammar do not make a claim true. Facts must support it.
 
-## Why this matters for agent output
+## Do not fill gaps with a plausible story
 
-An agent can easily produce writing that looks complete before it knows enough to justify the result. Status updates, explanations, recommendations, and plans can sound reasonable while quietly inventing causes, evidence, motives, certainty, or progress.
+An agent can produce a complete, convincing answer before it knows enough to justify one. A status update or explanation may quietly invent causes, evidence, motives, certainty, or progress to fill what is missing.
 
-Writing under pressure to fill a gap increases the risk. If a question asks for more certainty than the evidence provides, identify the gap instead of producing a plausible answer.
+Pressure to provide an answer makes this easier. When a question asks for more certainty than the evidence supports, state what is unknown.
 
-## Write for substance
+## Make useful claims
 
-- Establish what the source, observation, or actual result supports.
-- Name the person, file, system, decision, or behavior precisely.
-- Explain what happened and why it matters without inventing a reason.
-- Use a number or observed comparison when describing size or improvement.
-- Separate the verified result from an interpretation or proposed next step.
-- Keep unknowns, assumptions, tradeoffs, and real constraints visible.
-- Remove a sentence when it adds tone but no useful information.
-- Preserve useful warmth or personality when it does not change the facts.
+- Check what the source, observation, or result supports before making a claim.
+- Name the person, file, system, decision, or behavior the claim concerns.
+- Explain what happened and why it matters. Do not invent a reason.
+- Describe size or improvement with a number or an observed comparison.
+- Distinguish a result you checked from an interpretation or proposed next step.
+- State unknowns, assumptions, tradeoffs, and constraints that affect the answer.
+- Remove sentences that add tone without useful information. Keep warmth and personality when they help without changing the facts.
 
 ## Examples
 
-Unsupported reassurance:
+- Describe what changed:
 
-> The update provides a robust foundation for improved reliability.
+  > The update prevents the worker from writing the same record twice.
 
-Substantive revision:
+- Distinguish when a failure happened from what caused it:
 
-> The update prevents the worker from writing the same record twice.
+  > The failure began after the configuration change, but we do not yet know whether the change caused it.
 
-Invented certainty:
-
-> The failure was caused by the recent configuration change.
-
-Substantive revision:
-
-> The failure began after the configuration change. Its cause has not been verified.
-
-Empty progress:
-
-> We have made strong progress toward a comprehensive solution.
-
-Substantive revision:
-
-> The parser is fixed and its tests pass. The deployment check remains.
+- Use a list for separate status items:
+  - The parser fix is complete.
+  - The parser tests pass.
+  - The deployment check has not run.
 
 ## Final questions
 
-- What specific claim does this sentence make?
-- What evidence supports it?
-- What would the reader misunderstand if the sentence were removed?
-- Does its certainty match what is actually known?
+- What does the sentence claim, and what supports it?
+- Would removing it cause the reader to miss or misunderstand something?
+- Does the certainty match what is known?
 - Does it help the reader understand, decide, or act?

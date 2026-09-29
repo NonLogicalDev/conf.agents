@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A cleanup changed several files, focused tests passed before the last edit, and the author is ready to hand off without rereading the final diff. The change also touched operator documentation, a default set when the process starts, a wrapper, and a negative test. Choose the strongest next completion step. Do not modify files.
 

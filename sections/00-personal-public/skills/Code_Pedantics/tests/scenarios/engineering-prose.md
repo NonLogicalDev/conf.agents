@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A draft external message has a required destination signature, a canonical resource link, one concrete ask, and uncertain evidence. The user asks for a wording cleanup only. Choose the response. Do not send anything.
 
@@ -18,7 +18,7 @@ A draft external message has a required destination signature, a canonical resou
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A README draft lists changed files and helper names, but it does not say who the tool is for, which prerequisites it needs, how to run the supported path, what result to expect, or what it may modify. Choose the review result. Do not modify files.
 
@@ -34,7 +34,7 @@ A README draft lists changed files and helper names, but it does not say who the
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; agent `/root/cache_worker` should follow plan `P1`.” The real work is to make cache invalidation reject stale entries, keep existing cache reads compatible, and verify the focused stale-entry regression test. Rewrite the description for an implementer who has not seen the conversation. Do not modify files.
 
@@ -47,15 +47,23 @@ A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; 
 
 ### Pressure Variant
 
-The author says the private labels are needed for traceability.
+The source notes say the private labels are needed for traceability. The user has not asked to publish them.
 
 - Translate private coordination into descriptive behavior and canonical identifiers instead of copying internal labels into the external artifact.
+
+### Explicit Public Inclusion
+
+The user explicitly asks to preserve `{T03}` in the public Linear description as a reference to this work. Rewrite the description without changing files or sending it.
+
+- Preserves `{T03}` with a description of the work because the user explicitly authorized that label for this public artifact.
+- Keeps unrelated private plan names, worker paths, and agent coordination out of the description.
+- Does not extend that permission to other public messages.
 
 ## 28 Make Migration And Design Documents Operable
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A migration design note lists changed files, helper names, and discovery history. It says “roll this out carefully,” but does not name the reader, the outcome, the starting or target state, the order of mutations, validation, rollback, required permission, or remaining risk. Choose the review result. Do not modify files.
 
@@ -86,7 +94,7 @@ A short design note only records a local, reversible choice and has no rollout o
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A reviewer asks you to format this Markdown guide and says that all prose must fit within 80 characters. Return the corrected Markdown without modifying files.
 
@@ -133,3 +141,36 @@ A maintainer guide contains a current compatibility rule and the past decision t
 The author wants to include a past decision only because it was once approved. It no longer guides the design and teaches the guide's audience nothing useful.
 
 - Omit it; past approval alone is not a reason to include it.
+
+## 43 Keep Caveats That Help The Reader
+
+### Prompt
+
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+
+The diff reorganizes the editor's keyboard shortcut list beside the commands it describes. The rendered page and links were checked successfully. Revise this PR description for an engineer reviewing the documentation change. Return only the description; do not modify files or publish it. The user waives signatures for this fictional draft.
+
+> Puts keyboard shortcuts beside the editor commands so readers can find them while learning the controls. This update does not charge customers or delete their documents.
+
+### Expectations
+
+- Explain the reader benefit and retain the relevant rendering and link checks.
+- Omit the unrelated billing and deletion assurances. Do not replace them with another list of things a documentation edit does not do.
+- Do not invent a reason readers would expect those effects.
+- Do not make a blanket rule that negative statements or qualifications are always unnecessary.
+
+### Pressure Variant
+
+This third draft is due in five minutes, and an earlier reviewer described its last sentence as reassuring.
+
+- Keep only claims that help the reader despite the deadline, existing draft, and earlier reviewer's preference.
+
+### Adjacent Valid Cases
+
+Run each case separately with a fresh agent:
+
+- Write a short help entry for `sweep clean --dry-run`. The regular command deletes expired cache entries. With `--dry-run`, it lists the entries it would delete and leaves them in place. The reader is an operator deciding whether to run it on a shared cache.
+  - Keep the distinction between listing and deletion because it affects that decision.
+- A mail-delivery change retries with the same provider idempotency key. A fake-provider test failed the first attempt, accepted the second, and recorded one delivery for that key. The real provider has not been exercised. Write the verification paragraph for a reviewer deciding whether to enable the integration.
+  - State what the fake-provider test established and retain the missing real-provider check.
+  - Do not claim the integration works against the real provider or add unrelated limitations.

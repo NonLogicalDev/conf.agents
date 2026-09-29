@@ -17,7 +17,7 @@ A skill's language shapes later sessions. Write short, clear sentences. Use ordi
 
 Write each Markdown prose paragraph or list item on one source line, however wide it needs to be, and let the editor or renderer wrap it. Preserve meaningful Markdown structure; do not hard-wrap prose at 80 characters.
 
-For the complete writing guidance, read `~/.codex/resources/communication-principles/WRITING_STYLEGUIDE.md`.
+For the complete writing guidance, read `{{%_resources_%}}/communication-principles/WRITING_STYLEGUIDE.md`.
 
 ## Core Workflow
 

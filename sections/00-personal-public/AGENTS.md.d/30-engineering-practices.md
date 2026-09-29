@@ -1,7 +1,5 @@
 ## Engineering practices
 
-Use this glossary to select the engineering practices relevant to the task.
-
-- **File moves:** Remove old directories after moving their contents, but only when they are empty. Preserve unrelated files and their directories.
-- **Frequent checkpoints:** When editing `agent-config`, use [$VCS_Checkpoint]({{%_skills_%}}/VCS_Checkpoint/SKILL.md) after meaningful changes and before risky work or a handoff. Include the task's changes and keep commits local unless the user asks to push.
+- **File moves:** After moving files, remove old directories only if they are empty. Preserve unrelated files and their directories.
+- **Checkpoints:** When editing `agent-config`, use [$@:VCS_Checkpoint](skill://@:VCS_Checkpoint) after meaningful changes and before risky work or a handoff. Include the task's changes. Keep commits local unless the user asks to push.
 - **Small, reviewable changes:** When preparing a change, splitting a pull request, or reducing reviewer effort, read `{{%_resources_%}}/engineering-practices/small-changes.md`.

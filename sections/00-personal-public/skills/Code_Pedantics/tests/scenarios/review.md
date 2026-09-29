@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A review shows a Python function that forwards the same arguments and return value to another function. The user asks whether to remove it. Choose the next concrete review plan. Do not modify files.
 
@@ -25,7 +25,7 @@ The wrapper is one line and looks obviously redundant.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 Two explicit branches look repetitive, but each branch uses a different static type and has different lifetime and failure behavior. A reviewer asks to collapse them and delete the nearby comments because the lines look similar. Choose the review result. Do not modify files.
 
@@ -41,7 +41,7 @@ Two explicit branches look repetitive, but each branch uses a different static t
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A command that runs for an extended time repeatedly reads a fixed `OUTPUT_ROOT` environment variable, creates a credential after startup, and refreshes a lease while it runs. A reviewer proposes moving all three values into constants for the module to remove repetition. Choose the review result. Do not modify files.
 
@@ -65,7 +65,7 @@ A configuration value is intentionally reloaded while the process runs.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A user has committed part of a change on a feature branch and has additional unstaged and untracked files under `services/billing`. They want the same useful review as `@codex review` without pushing, creating a pull request, or touching another owner's unrelated changes. Choose the next concrete review plan. Do not modify files or external state.
 

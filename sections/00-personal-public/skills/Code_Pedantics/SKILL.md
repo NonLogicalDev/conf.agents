@@ -13,7 +13,7 @@ Apply only the parts of this skill that fit the work. You do not need to run cod
 
 When editing a skill, remember that its wording shapes later sessions. Use simple English, short sentences, direct instructions, and calm explanations. Avoid legal language and long chains of awkward compound adjectives. Keep familiar terms such as `self-contained` when they make a sentence clearer. Preserve exact technical terms, skill names, commands, paths, fixtures, links, permissions, and safeguards.
 
-When writing or revising a skill, read `~/.codex/resources/communication-principles/WRITING_STYLEGUIDE.md`. Keep familiar compounds when they help. Use fuller wording when it explains the action, reason, or result more clearly.
+When writing or revising a skill, read `{{%_resources_%}}/communication-principles/WRITING_STYLEGUIDE.md`. Keep familiar compounds when they help. Use fuller wording when it explains the action, reason, or result more clearly.
 
 Write each Markdown prose paragraph or list item on one source line, however wide it needs to be, and let the editor wrap it. Do not introduce an 80-character limit or apply a Git commit convention to other Markdown.
 

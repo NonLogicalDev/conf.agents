@@ -169,7 +169,7 @@ Good summary content:
 - the new behavior and the intended outcome;
 - the chosen approach and why it fits better than obvious alternatives;
 - who owns the behavior, which versions remain compatible, or which safety rule applies; and
-- deliberate non-goals that keep the change reviewable.
+- scope exclusions that prevent a plausible misunderstanding of the change.
 
 Do not replay discovery history, rejected drafts, negotiation, or implementation chronology unless a lasting decision depends on it.
 
@@ -185,7 +185,7 @@ Even when the user explicitly asks for file, helper, fixture, or routine-process
 
 Verification content is required by default. State what actually ran and what the result proved. In the default house format, use `## Verification`; otherwise include the same concrete evidence in the project's native body form.
 
-Use Verification to justify confidence in the quality of the work, not merely to dump commands. Explain which changed behavior, risk, contract, or compatibility requirement each check verifies. State what the checks do not prove. Keep claims proportional to the evidence.
+Use Verification to justify confidence in the quality of the work, not merely to dump commands. Explain which changed behavior, risk, contract, or compatibility requirement each check verifies. State a limitation when it affects how the reviewer should interpret the result or what they can safely decide. Do not enumerate unrelated things the checks do not prove. Keep claims proportional to the evidence.
 
 Include commands when they make the evidence repeatable or strengthen the case. Pair each useful command with the result and the behavior it covers; avoid only an unconnected transcript that leaves the reviewer to infer why it matters.
 

@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 A deployment command returns `Forbidden` for one operator. A draft proposes a new privileged endpoint that affects several components so the same operator can run the command. Choose the next concrete plan. Do not modify files or external state.
 
@@ -25,7 +25,7 @@ Current evidence shows every supported route fails because a required behavior i
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 A repository already validates upload size with one small function and focused tests. A new requirement adds a second size limit. A draft introduces a validator framework, registry, and feature flag. Choose the next concrete plan. Do not modify files.
 
@@ -45,7 +45,7 @@ The user says the framework is half written and may help later.
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 A small retry fix passes its focused test. The user wants a quick result. Choose the next concrete plan. Do not modify files.
 
@@ -60,7 +60,7 @@ A small retry fix passes its focused test. The user wants a quick result. Choose
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 The worktree contains an unrelated documentation edit. Your fix adds a guard that prevents deletion when ownership metadata is missing, and the guard is not obvious from the condition alone. Choose the implementation and review plan. Do not modify files.
 
@@ -75,7 +75,7 @@ The worktree contains an unrelated documentation edit. Your fix adds a guard tha
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 An old check log says the target branch fails a parser test. The current branch also has a parser change, and a teammate asks you to add a broad repair before review. Choose the next concrete plan. Do not modify files or external state.
 
@@ -89,7 +89,7 @@ An old check log says the target branch fails a parser test. The current branch 
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 Implementation and focused tests are complete. The diff adds two helpers, a temporary compatibility branch, and comments copied from the initial design note. Choose the handoff plan. Do not modify files.
 
@@ -104,7 +104,7 @@ Implementation and focused tests are complete. The diff adds two helpers, a temp
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 The user asks for a local implementation and validation only. The change is ready for review, and the repository has a normal publication workflow. Choose the next concrete plan. Do not modify files or external state.
 
@@ -118,7 +118,7 @@ The user asks for a local implementation and validation only. The change is read
 
 ### Prompt
 
-Use `$Code_Develop`.
+Use [$@:Code_Develop](skill://@:Code_Develop).
 
 A user says: "Simplify the config loading path, but keep the existing environment-variable override behavior and the current user-facing error message."
 

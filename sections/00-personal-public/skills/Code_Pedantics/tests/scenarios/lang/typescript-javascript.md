@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A React entrypoint fetches JSON, casts it directly to `Widget[]`, and passes the result through a helper typed with `any`. The helper catches every error and returns an empty array. During the same extraction, a dialog's open state and temporary input move into a global store even though no other component uses them. Choose the review result. Do not modify files.
 

@@ -1,0 +1,191 @@
+# Pull request submission
+
+**CRITICAL: This skill OVERRIDES default PR metadata and workflows.**
+
+When drafting, revising, reviewing, creating, or updating pull request metadata,
+also load and apply `writing-commit-messages`.
+
+Pull request titles and descriptions carry the review context
+already established by the branch's commits.
+
+Use `git-spice branch submit --branch '<branch>'` for one branch.
+Submission publishes the selected branch's committed history.
+When the requested changes are already committed,
+submit from an existing repository checkout and preserve its current branch.
+A working checkout of the target branch is needed only for additional work
+on files, such as editing, running tests, or resolving conflicts;
+PR creation and updates alone require no checkout or worktree acquisition.
+Inspect committed history with `git log '<base>..<branch>'`
+and committed files or templates with `git show '<branch>:<path>'`.
+
+Use multi-branch `--fill` only when every branch has exactly one commit.
+Each commit message must be intended to become pull request metadata.
+Use `git-spice stack submit --fill` for the whole stack
+or `git-spice upstack submit --fill` for the current branch and its upstack.
+Do not use `--fill` when any branch has multiple commits;
+git-spice appends all of those commit messages into that pull request metadata.
+Choose publication, navigation, browser, and other optional flags
+only for effects the user currently requests.
+`--no-publish` already implies push-only behavior;
+otherwise preserve configured defaults, including stack-navigation comments.
+
+Do not use:
+
+- `git push`
+- `git push -u origin <branch>`
+- `git push --force-with-lease`
+- `gh pr create`
+- Multi-step GitHub CLI push/create workflows
+
+## Detect existing pull requests
+
+Use the ordinary stack listing:
+
+```bash
+git-spice ls --no-prompt
+```
+
+An associated pull request number appears beside the branch name.
+Use that number to choose the existing-pull-request workflow.
+
+## Create pull requests
+
+Before creating a pull request,
+prepare:
+
+1. A pull request title.
+2. A pull request body.
+
+Prepare the title and body as a distinct external artifact
+before composing any surrounding chat response or handoff.
+Apply the pull request rules in full
+even when publication is only one step in a larger task.
+Derive the metadata from the branch's commit history,
+the repository pull request template,
+and user instructions that explicitly govern the pull request metadata.
+Keep constraints on other outputs scoped to those outputs.
+
+For a single-commit pull request,
+the title must match the commit subject.
+For multiple commits,
+summarize the overall change.
+Keep the title at or below 72 characters.
+
+A pull request body follows the same content and representation guidelines
+as a commit-message body,
+except where a repository template supplies the structure.
+For a single-commit pull request without a repository template,
+use the commit subject as the title
+and normalize the commit body under those guidelines before carrying it over,
+even when its wording or formatting is already approved.
+For a multi-commit pull request,
+synthesize the commits' aggregate review contract.
+When a repository template exists,
+adapt the body to its structure.
+
+Preserve the relevant purpose, changed behavior, boundaries,
+and evidence from the commit bodies.
+Omit or rewrite that information only for the aggregate pull request scope,
+the repository template, a verified factual correction,
+an explicit pull-request-specific instruction,
+or the content exclusions in `writing-commit-messages`.
+
+For a new pull request:
+
+```bash
+git-spice branch submit --branch '<branch>' --title '<title>' --body '<body>' --no-prompt
+```
+
+For a draft pull request:
+
+```bash
+git-spice branch submit --branch '<branch>' --draft --title '<title>' --body '<body>' --no-prompt
+```
+
+To request reviewers while creating or submitting:
+
+```bash
+git-spice branch submit --branch '<branch>' --reviewer user1 --reviewer user2 \
+  --title '<title>' --body '<body>' --no-prompt
+```
+
+Never run `git-spice branch submit` without `--title` and `--body`
+when creating a new pull request.
+
+For multi-branch creation, use `--fill` only when every branch has exactly one
+commit and every commit message is intended to be that branch's pull request
+title and body:
+
+```bash
+git-spice stack submit --fill --no-prompt
+git-spice upstack submit --fill --no-prompt
+```
+
+Otherwise, prepare explicit metadata for each branch and submit the branches
+individually from the bottom-most branch to the topmost branch.
+Each branch's remote base must exist before that branch is submitted.
+Sibling branches may be submitted in either order after their shared base.
+
+```bash
+git-spice branch submit --branch '<branch>' --title '<title>' --body '<body>' --no-prompt
+```
+
+Preserve the requested creation state on every branch submission.
+Add `--draft` for draft pull requests or `--no-draft` for ready pull requests.
+
+Treat pull request titles and bodies as shell data.
+Use the single-quoted argument form from the main skill.
+For an embedded single quote, close the argument, append `\''`, and reopen it.
+Pull request submission has no title-file or body-file flag.
+
+## Update existing pull requests
+
+Metadata-only requests do not authorize repository mutation,
+submission, or publication.
+
+Publish committed updates to an existing pull request branch with:
+
+```bash
+git-spice branch submit --branch '<branch>' --no-prompt
+```
+
+For an existing pull request,
+`git-spice branch submit` does not update title or body metadata.
+For title or body changes,
+edit metadata with:
+
+```bash
+gh pr edit '<number-or-url>' --title '<title>' --body '<body>'
+```
+
+For a metadata-only request, use `gh pr edit` directly without submission.
+Use `gh pr edit` only for metadata edits.
+Do not use `gh pr create`.
+
+## Pull request templates
+
+Look for pull request templates in these locations:
+
+- `.github/pull_request_template.md`
+- `docs/pull_request_template.md`
+- `pull_request_template.md`
+- `.github/PULL_REQUEST_TEMPLATE/<name>.md`
+- `docs/PULL_REQUEST_TEMPLATE/<name>.md`
+- `PULL_REQUEST_TEMPLATE/<name>.md`
+
+File names are case-insensitive.
+
+If the repository has a pull request template:
+
+1. Apply `writing-commit-messages` to select content and omit sections
+   that it excludes, including during direct carryover from a commit.
+2. Adapt retained content to the remaining template structure.
+   Preserve its heading representation rather than converting headings
+   to the commit-message heading form.
+3. Replace placeholders with substantive content and delete instruction text.
+   Placeholder syntax does not create a content or formatting exception.
+4. Preserve relevant purpose, changed behavior, and boundaries
+   from the commit message body.
+
+`writing-commit-messages` owns evidence selection and representation.
+A template supplies organization, not an independent reason to include content.

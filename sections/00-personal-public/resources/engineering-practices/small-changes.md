@@ -4,27 +4,27 @@ Read this reference when preparing a code change, deciding whether to split a pu
 
 Source: [Google Engineering Practices: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html).
 
-A change list, or CL, is a proposed code change. The same principles apply to a GitHub pull request or another reviewable unit of work.
+A change list, or CL, is a proposed code change. These principles also apply to GitHub pull requests and other work submitted for review.
 
 ## Prefer one coherent change
 
-Keep a change focused on one understandable purpose. Include its related tests, the context the reviewer needs, and enough implementation for the result to make sense on its own.
-
-This is a judgment about review effort, not a strict limit on lines or files. A change should remain complete, understandable, and safe to merge.
+- Give each change one understandable purpose.
+- Include the related tests, the context the reviewer needs, and enough implementation for the result to make sense on its own.
+- Keep it complete, understandable, and safe to merge. Judge its size by the effort needed to review it, not an arbitrary limit on lines or files.
 
 ## Why this helps
 
 Focused changes are usually easier to:
 
 - Read and review without setting aside a large block of time.
-- Reason about and test thoroughly.
+- Understand and test thoroughly.
 - Merge, debug, and roll back.
 - Correct before too much work depends on the wrong approach.
 - Explain without asking reviewers to reconstruct hidden context.
 
-## Split work when it genuinely helps
+## Split work when it helps
 
-Useful boundaries include:
+Consider these ways to divide work:
 
 - Separate unrelated refactors from a bug fix or feature.
 - Separate changes with different owners or reviewers.
@@ -32,10 +32,18 @@ Useful boundaries include:
 - Split independent features into complete, reviewable steps.
 - Stack dependent changes when the repository supports that workflow.
 
-Keep each step buildable and preserve the related tests. Avoid splitting a change so aggressively that reviewers need several incomplete pull requests to understand a single behavior.
+Each step must build and include its related tests. Keep enough of a behavior together that reviewers do not need several incomplete pull requests to understand it.
 
 ## Apply judgment
 
-A generated mechanical change, a straightforward file deletion, or a necessarily coupled migration can be large while remaining simple to review. When a broad change is genuinely needed, explain its boundaries, highlight the meaningful parts, and provide useful verification.
+Some large changes are still simple to review:
 
-The principle is to respect the reviewer's time, not to optimize for an arbitrary line count.
+- A generated mechanical change.
+- A straightforward file deletion.
+- A migration whose parts must change together.
+
+When a broad change is needed:
+
+- Explain what it covers.
+- Point out the parts that matter to the reviewer.
+- Provide useful verification.

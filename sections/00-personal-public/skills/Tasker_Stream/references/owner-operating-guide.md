@@ -8,7 +8,7 @@ When starting or resuming owner work with a plan root, read `<plan-root>/MEMORY.
 
 Re-read `AGENTS.md` after meaningful steering or instruction changes and before work that depends on its guidance. Have affected workers read the same instructions before starting or resuming their assignments.
 
-Before changing owner state, verify active membership in root `OWNERS.md`, the sole ownership record. Other documents link to it rather than declaring owners. Follow the skill's explicit migration rule when it is missing; an unlisted or revoked thread cannot take over or enroll itself.
+Before changing owner state, verify active membership in root `OWNERS.md`, the only ownership record. Other documents link to it rather than declaring owners. Follow the skill's explicit migration rule when it is missing; an unlisted or revoked thread cannot take over or enroll itself.
 
 Read only memory or supporting documents that help with the current task, and apply what they establish to the next decision. After a handoff or lost context, reopen the sources needed to continue instead of trusting an old summary.
 

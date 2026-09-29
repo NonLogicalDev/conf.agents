@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A deletion guard checks whether ownership metadata is missing. The code is mechanically readable, but a future engineer cannot tell why missing metadata prevents deletion. Choose the review result. Do not modify files.
 
@@ -19,7 +19,7 @@ A deletion guard checks whether ownership metadata is missing. The code is mecha
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A module documentation comment starts by listing helper functions, internal files, and the order of implementation steps. It is accurate, but a reader cannot tell what capability the module enables, who benefits from it, or how to recognize that it is working. Choose the review result. Do not modify files.
 
@@ -40,7 +40,7 @@ A short local comment sits beside an important guard and names the risk the guar
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A long coordinator validates ownership, builds a mutation plan, applies it, and reports the result. Every statement is mechanically readable, but the phases share state, helpers would need large argument lists, and no local comment explains why validation precedes planning or why reporting happens after mutation. Choose the review result. Do not modify files.
 
@@ -63,7 +63,7 @@ A short coordinator calls clearly named helpers in an obvious order and has no u
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Rust extraction that changes only comments introduces a structure for a rebuild plan and a verification helper. The struct doc says only that it carries the fields used during a rebuild. The helper doc says to call it after loading a manifest and before publishing a replacement. Both statements are accurate for the current caller, the formatter and tests pass, and the diff is large, but a reader cannot tell why the type has this shape or why the helper exists. Choose the review result. Do not modify files.
 
@@ -94,7 +94,7 @@ A verification helper always requires a held lease and always runs before public
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Rust doc comment says:
 

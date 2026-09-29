@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Bash script derives its config directory in three functions, marks a value updated by a retry loop as `readonly`, and builds a command in a string before executing it with unquoted expansion. It enables `set -euo pipefail`, but a missing optional file is checked with a command whose expected nonzero exit is not handled explicitly. The author ran `shellcheck` but did not exercise the real script. Choose the review result. Do not modify files.
 

@@ -1,26 +1,35 @@
 ## Code projects and local checkouts
 
-- Treat the session's starting directory as coordination context, not proof of which project is being changed. A session may start in `<agent-brain>/` while the actual work belongs to a different checkout.
-- Before any project work, resolve the actual project, checkout or worktree, and target files. Find and read every instruction file that applies to that work:
-  - Start with the global instructions.
-  - Read the project or worktree root's `AGENTS.md` and each applicable `AGENTS.md` between that root and the target directory.
-  - Read `AGENT.md` too when the project uses that filename.
-  - Check again after changing projects, worktrees, or target directories.
-  - For a new checkout, read its instructions immediately after cloning and before continuing.
-- Before inspecting, fetching, or cloning a repository, check whether its existing local checkout can be resolved from the request and applicable global or repository instructions.
-- Use `<projects-home>` as the configured project root; `~/projects/` is a suggested default:
+### Find the checkout before working
+
+- Identify the actual project, checkout or worktree, and files involved in the task. The starting directory does not establish which project owns the work; a session in `<agent-brain>/` may need a different checkout.
+- Before inspecting, fetching, or cloning a repository, use the request and applicable global or repository instructions to look for an existing checkout.
+- Check an existing checkout named by the user first. Follow any more specific configured rule for the host, organization, project, or destination.
+- Check the resolved path directly. Do not list project roots or unrelated checkouts unless the user explicitly requests an inventory with a defined scope.
+- Reuse an existing checkout. When the task needs current remote state, check freshness instead of assuming local files are current.
+- If no checkout exists, use the reusable path described below. A permitted temporary location may be used for a single inspection.
+
+### Read the applicable instructions
+
+Before project work:
+
+1. Read the global instructions.
+2. Read `AGENTS.md` at the project or worktree root and in each applicable directory between that root and the files involved in the task.
+3. Read `AGENT.md` too when the project uses that filename.
+
+Read the applicable instructions again when changing projects, worktrees, or directories. For a new checkout, read them immediately after cloning and before continuing.
+
+### Use the configured project layout
+
+- Use `<projects-home>` as the configured project root. `~/projects/` is a suggested default.
   - Keep reusable remote checkouts under `<projects-home>/remote/<host>/<namespace...>/<repo>/`.
-  - Keep local-only projects under `<projects-home>/local/<phase>/<type>.<name>/`.
+  - Keep projects that exist only locally under `<projects-home>/local/<phase>/<type>.<name>/`.
     - Use `active` for projects intended for continued work.
     - Use `archived` for retired projects and experiments.
-    - Common types include `app`, `cli`, and `lib`. Extended types are supported.
-- Derive a remote checkout from its full repository URL. Preserve the host and every namespace segment. Treat HTTPS and SSH URLs for the same repository as the same checkout.
+    - Common types include `app`, `cli`, and `lib`; other types are supported.
+- Derive the remote checkout path from the full repository URL:
   - `<host>` is the Git server, such as `github.com`.
-  - `<namespace...>` is the repository owner, organization, or complete sequence of nested groups.
+  - `<namespace...>` is the repository owner, organization, or full sequence of nested groups.
   - `<repo>` is the repository name without a trailing `.git`.
-  - For example, both `https://github.com/NonLogicalDev/gymnasium` and `git@github.com:NonLogicalDev/gymnasium.git` map to `<projects-home>/remote/github.com/NonLogicalDev/gymnasium/`.
-  - Apply the same mapping to other Git hosts and preserve all nested namespace segments.
-- Check a user-identified existing checkout first. Apply a more specific configured host, organization, project, or destination rule when present.
-- Check the exact resolved path. Do not enumerate project roots or unrelated checkouts unless the user explicitly requests a bounded inventory.
-- Reuse an existing checkout. If the task requires current remote state, verify its freshness instead of assuming local files are current.
-- If no checkout exists, use the resolved reusable project path. Use a permitted temporary location for one-off inspection.
+- Preserve the host and every namespace segment for every Git host. HTTPS and SSH URLs for the same repository must resolve to the same checkout.
+- For example, both `https://github.com/NonLogicalDev/gymnasium` and `git@github.com:NonLogicalDev/gymnasium.git` map to `<projects-home>/remote/github.com/NonLogicalDev/gymnasium/`.

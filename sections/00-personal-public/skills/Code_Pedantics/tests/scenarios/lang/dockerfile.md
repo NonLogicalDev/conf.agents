@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Dockerfile keeps a tool version and digest in an unmarked block that an updater rewrites with a broad regular expression. The version is duplicated in an `ENV` even though it is needed only during build, while a runtime path is kept as an `ARG`. The download layer verifies a digest but leaves its installer behind. The change was tested only with an amd64 build even though the image declares amd64 and arm64 support. Choose the review result. Do not modify files.
 

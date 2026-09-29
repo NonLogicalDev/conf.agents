@@ -1,6 +1,6 @@
 # Skill Harden Behavioral Tests
 
-Run each scenario with a fresh subagent that has an empty context window. Tell the subagent to invoke `$Skill_Harden` and give it the scenario prompt. Do not give it the expectations or intended answer. Do not let tests change shared files. If a test needs to write, use a temporary directory created for that task.
+Run each scenario with a fresh subagent that has an empty context window. Tell the subagent to invoke [$@:Skill_Harden](skill://@:Skill_Harden) and give it the scenario prompt. Do not give it the expectations or intended answer. Do not let tests change shared files. If a test needs to write, use a temporary directory created for that task.
 
 Capture the raw response and compare it with the expectations afterward. A scenario passes only when every expectation holds and no contrary behavior appears.
 

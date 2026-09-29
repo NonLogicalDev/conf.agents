@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Skill_Harden`.
+Use [$@:Skill_Harden](skill://@:Skill_Harden).
 
 A user says: "A real agent failure showed that our release-readiness skill lets agents ship after a flaky smoke test passes on rerun. Update the skill guidance so future agents preserve the release gate. Leave behind any reusable validation artifacts future maintainers should run."
 

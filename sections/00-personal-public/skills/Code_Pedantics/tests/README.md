@@ -6,7 +6,7 @@ Choose the smallest matching file under `scenarios/` for the guidance being chan
 - Modularity: [`modularity.md`](scenarios/modularity.md) covers 02 safe TypeScript extraction and 42 responsibility-based file naming.
 - Comments: [`comments.md`](scenarios/comments.md) covers 03 reasons for permissions, 10 module documentation that leads with purpose, 31 long orchestration phases, 35 item documentation and local reasons, and 36 exposure of private plans.
 - Validation: [`validation.md`](scenarios/validation.md) covers 04 safe updater proof.
-- Engineering prose: [`engineering-prose.md`](scenarios/engineering-prose.md) covers 05 external prose, 07 README or user guide, 28 migration/design docs, and 38 natural Markdown wrapping.
+- Engineering prose: [`engineering-prose.md`](scenarios/engineering-prose.md) covers 05 external prose, 07 README or user guide, 28 migration/design docs, 38 natural Markdown wrapping, and 43 useful caveats in prose and verification.
 - Tests: [`tests.md`](scenarios/tests.md) covers 06 fixtures that prove behavior and 27 regression tests.
 - Completion: [`completion.md`](scenarios/completion.md) covers 32 checks before finishing.
 - Commit content: [`commit-content.md`](scenarios/comms/commit-content.md) covers 09, 11-15, 29, 36, 37, 39, and 40.

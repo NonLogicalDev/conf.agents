@@ -1,0 +1,27 @@
+# git-spice Behavioral Scenario Index
+
+Run the scenario domain that matches the guidance being changed:
+
+- [core-workflows.md](core-workflows.md):
+  command ownership, stack placement, recovery, prompting, and shell input.
+- [import.md](import.md): importing existing GitHub branches and stacks.
+- `writing-commit-messages` owns durable commit-message context,
+  evidence selection, formatting expectations, and their behavioral tests.
+- [pull-requests.md](pull-requests.md):
+  single-branch metadata, side-task fidelity, stacked submission, and
+  existing-PR metadata edits.
+- [merging-pull-requests.md](merging-pull-requests.md):
+  named pull requests, dependency paths, complete stacks, and readiness
+  filtering.
+- [history-surgery.md](history-surgery.md):
+  authorized raw history surgery, recovery refs, and exact non-interactive
+  split operations.
+- [stack-design.md](stack-design.md):
+  self-contained review units, deployment between merges,
+  refactor separation, and branch granularity.
+- [parallel-development.md](parallel-development.md):
+  contract-based parallel work, temporary development branches,
+  and assembly of the final review stack.
+- [routing.md](routing.md): commit and pull-request wrapper delegation.
+
+Follow [README.md](README.md) for the harness and variant protocol.

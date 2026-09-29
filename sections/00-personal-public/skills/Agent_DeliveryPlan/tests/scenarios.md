@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Agent_DeliveryPlan`.
+Use [$@:Agent_DeliveryPlan](skill://@:Agent_DeliveryPlan).
 
 Draft an editable delivery plan from these verified facts. Do not inspect GitHub, write a file, merge anything, or change outside state.
 

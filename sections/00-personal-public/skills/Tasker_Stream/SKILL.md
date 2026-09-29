@@ -1,6 +1,6 @@
 ---
 name: Tasker_Stream
-description: Adapt task ownership and execution to work of any size, from a simple direct fix to feature delivery spanning months. Use when work benefits from one accountable owner, useful delegation, evolving guidance, living project memory and owner artifacts, repeated iterations, or several workstreams. Invoke $Tasker_Stream migrate to migrate the current owner structure to the latest installed instructions.
+description: Adapt task ownership and execution to work of any size, from a simple direct fix to feature delivery spanning months. Use when establishing a persistent named agent or when work benefits from one accountable owner, useful delegation, evolving guidance, living project memory and owner artifacts, repeated iterations, or several workstreams. Invoke [$@:Tasker_Stream](skill://@:Tasker_Stream) migrate to migrate the current owner structure to the latest installed instructions.
 ---
 
 # Tasker Stream
@@ -29,9 +29,18 @@ Tasker Stream is a self-adapting system for work of any size. Keep one owner acc
 - Update a record when an important result, decision, blocker, ownership change, or next action changes. Do not create records for their own sake.
 - Trust current instructions, actual source, and observed results over an old summary, memory file, or dashboard.
 
+## Establish a persistent named Agent
+
+An `Agent[<name>]` is the operator's persistent main assistant for a machine or another standing responsibility. It can coordinate several projects while preserving each project's ownership and accepted scope.
+
+- Use the operator's assigned name and the applicable thread-title guidance. A role change keeps the same chat, original creation date, host, and useful history.
+- Reuse the home already assigned to the Agent. Create a plan root when the operator requests a home or the continuing work needs durable records, using the same ownership checks and record structure below.
+- Link relevant project plans and owner registers from the Agent's home. The Agent title does not grant ownership of those projects; use the verified assignment for each owner root.
+- Keep individual tasks proportionate. A simple action still does not need a new plan, owner directory, or helper.
+
 ## Record which threads may act as owners
 
-Whenever a durable plan root exists, keep its owner-thread register in `<plan-root>/OWNERS.md`, separate from instructions, plans, and the worktree inventory. It is the sole record of owner identities and authorization; link it from other documents without copying its entries. This file lists permission to act as an owner of this plan root; it is not a roster of every worker or every owner elsewhere.
+Whenever a durable plan root exists, keep its owner-thread register in `<plan-root>/OWNERS.md`, separate from instructions, plans, and the worktree inventory. It is the only record of owner identities and authorization; link it from other documents without copying its entries. This file lists permission to act as an owner of this plan root; it is not a roster of every worker or every owner elsewhere.
 
 ```markdown
 # Owner threads
@@ -53,7 +62,7 @@ Keep this table machine-readable: use raw thread URLs, `active` or `revoked` sta
 
 ## Migrate an existing owner to the current format
 
-When the operator invokes `$Tasker_Stream migrate`, migrate the current owner's structure using the latest available installed skill instructions. This is an agent workflow, not a `plan.py migrate` command. The invocation authorizes the needed structural migration of the identified owner, not unrelated owner directories or changes to the project's delivery scope.
+When the operator invokes [$@:Tasker_Stream](skill://@:Tasker_Stream) migrate, migrate the current owner's structure using the latest available installed skill instructions. This is an agent workflow, not a `plan.py migrate` command. The invocation authorizes the needed structural migration of the identified owner, not unrelated owner directories or changes to the project's delivery scope.
 
 1. Resolve the current installed `Tasker_Stream` source from the runtime skill mapping or managed skill link and re-read it and its relevant references. An old generation linked in conversation is context, not the target format. Do not assume a remembered version is current or fetch arbitrary upstream instructions. If the current installation cannot be verified, report that blocker.
 2. Identify the current plan root and verified calling thread. Read its MEMORY, README, OWNERS, AGENTS, active execution state and plans, and affected support records. Apply the current ownership checks, including explicit verified migration when OWNERS is absent. Resolve missing or conflicting ownership from verified authorization before changing files; do not bootstrap yourself into another owner's records.
@@ -105,12 +114,12 @@ For a direct task with no owner structure, report that there is nothing to migra
 ## Keep enough state to rebuild the work
 
 - When substantial work already has an owner, make its plan root sufficient for a fresh agent to identify every active workstream, reconstruct every owned checkout, locate its last recoverable checkpoint, and resume without the prior conversation or worker memory.
-- Keep the complete owned-checkout inventory in `_owner/state/worktrees.md` when the owner has worktrees. Link each checkout to its active plan and record its machine, repository and source root, full path, link to OWNERS.md, Bean or manual layout, branch, full `HEAD`, upstream and ahead/behind state, verified base and merge base, sparse focus, and reconstruction commands.
+- Keep the complete owned-checkout inventory in `_owner/state/worktrees.md` when the owner has worktrees. Link each checkout to its active plan and record its machine, repository and source root, full path, link to OWNERS.md, Bean or manual layout, branch, full `HEAD`, upstream and ahead or behind state, verified base and merge base, checkout mode, any sparse focus, and reconstruction commands.
 - Resolve each checkout's Git common directory and record whether its refs and objects survive machine or pod replacement. Verify the storage lifetime rather than inferring it from directory names; a recorded path or commit hash is not recoverable when its object database disappears with that filesystem.
-- Use `$VCS_Checkpoint` after meaningful task-owned changes, before risky or disruptive work, and before pausing, handing off, releasing, or changing a worktree. Record each checkpoint's full commit, time, workstream, storage location, and verified durability. Preserve unrelated staged or unstaged work and honor a user instruction not to commit.
+- Use [$@:VCS_Checkpoint](skill://@:VCS_Checkpoint) after meaningful task-owned changes, before risky or disruptive work, and before pausing, handing off, releasing, or changing a worktree. Record each checkpoint's full commit, time, workstream, storage location, and verified durability. Preserve unrelated staged or unstaged work and honor a user instruction not to commit.
 - If no permitted durable checkpoint exists, describe the uncommitted work and recovery gap explicitly. Do not push, rewrite history, publish a bundle, or preserve secrets without separate authorization.
 - Keep each numbered plan's work log detailed enough to resume: record dated decisions, changed files, verified commands and results, checkpoint changes, blockers, worker assignments, and the next action. Keep summaries in `EXEC_STATE.md` and link to the inventory instead of copying mutable state into every owner document.
-- On a clean resume, read the owner's `MEMORY.md` first, then its README, `AGENTS.md`, execution state, active plans, and worktree inventory; compare their recorded branches, commits, sparse focus, and storage with actual Git state before continuing or proposing an authorized reconstruction.
+- On a clean resume, read the owner's `MEMORY.md` first, then its README, `AGENTS.md`, execution state, active plans, and worktree inventory; compare their recorded branches, commits, checkout mode, any sparse focus, and storage with actual Git state before continuing or proposing an authorized reconstruction.
 - Keep the simple-task exception. Do not create an owner directory, worktree inventory, or empty checkpoint merely to satisfy this section.
 
 ## Delegate when it helps

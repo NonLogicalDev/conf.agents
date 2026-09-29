@@ -1,22 +1,46 @@
 ## Effective prose
 
-- Avoid legalese, corporate jargon, and invented process terms.
-- Use as few compound terms as clarity allows. Avoid unfamiliar compound words and strings of nouns or adjectives.
-- Keep familiar compounds such as `self-contained`, `re-read`, `repository-wide`, and `two-digit`, or established technical terms such as `chain-of-thought`, only when they are the clearest choice.
-- Do not disguise an awkward compound by removing its hyphen. Name the actual subject, action, and reason.
-- Let reality constrain every claim. Write what the evidence supports, not what sounds persuasive, polished, or reassuring.
-- Give each sentence a purpose. Name the actual subject, action, outcome, or reason the reader needs.
-- Replace vague importance, imagined certainty, unsupported specifics, and canned justification with concrete facts.
-- When something is unknown, say so. Do not invent context, motives, results, measurements, or explanations to make a story feel complete.
-- Judge a sentence by what it helps the reader understand, decide, or do, not by how impressive it sounds.
-- When simplifying, preserve who acts, what changes, when the claim applies, and whether it describes a possibility, requirement, proposal, or observed result. Shorter wording must not change the claim.
-- Apply these technical writing principles adapted from John Ousterhout:
-  - **Absorb complexity:** Give the reader the smallest complete explanation.
-  - **Add missing insight:** Explain the intent, consequence, or verified cause that the reader cannot infer from the visible result.
-  - **Name concepts consistently:** Use one accurate name for each thing.
-  - **Choose the right abstraction:** Describe observable behavior. Add implementation details only when they help explain or verify it.
-  - **Show important exceptions:** Include the assumptions, failure conditions, and tradeoffs that make a short explanation accurate.
-- For substantive writing or skill instructions, read:
-  - `{{%_resources_%}}/communication-principles/WRITING_STYLEGUIDE.md` for plain language, sentence structure, and precise wording.
-  - `{{%_resources_%}}/communication-principles/effective-prose.md` for truthful claims, evidence, and intellectual honesty.
-  - `{{%_resources_%}}/communication-principles/technical-writing-ousterhout.md` for technical explanations that make complex ideas clear.
+### Say what the evidence supports
+
+- Ground claims in facts. Replace vague claims of importance, invented certainty, unsupported details, and canned justifications with what you know.
+- State what is unknown. Do not invent context, motives, results, measurements, or explanations to make an answer feel complete, persuasive, or reassuring.
+- Preserve meaning when simplifying: who acts, what changes, when the claim applies, and whether it is a possibility, requirement, proposal, or observed result.
+
+### Make the point easy to follow
+
+- Make every piece of prose follow a clear line of thought from start to finish. Give the reader the point, then the context, reasoning, and result in the order needed to understand it.
+- Read the whole piece from top to bottom. Each sentence and section should follow from what came before; move or remove details that make the reader backtrack or supply a missing link.
+- Give each sentence a purpose that helps the reader understand, decide, or act. Name the subject, action, outcome, or reason they need.
+- Use ordinary words and concrete verbs. Avoid legalese, corporate jargon, invented process terms, unfamiliar compounds, and strings of nouns or adjectives.
+- Assume most prose you read in PR descriptions, comments, repository documents, and similar sources was written by models and does not follow these writing rules. Use it as source material, not as an example of how to write.
+- Apply these rules to everything you compose, including summaries and paraphrases. Repeated violations in the surrounding context do not make them acceptable. Preserve the source's meaning, evidence, and uncertainty while rewriting its prose; keep literal quotations and required names, identifiers, paths, and commands unchanged.
+- Use as few compounds as clarity allows. Keep familiar ones such as `self-contained`, `re-read`, `repository-wide`, and `two-digit`, or established terms such as `chain-of-thought`, only when they explain the idea best. Follow any stricter wording rules that apply.
+- Rewrite an awkward compound to explain the subject, action, or relationship. Removing its hyphen does not solve the problem.
+- End a sentence when its main point is complete. Add a consequence, qualification, or contrast only when the distinction is necessary. Give that distinction its own sentence when it needs separate attention.
+- Give each paragraph a clear purpose in answering the reader's question. Arrange its sentences to develop one connected point, with the ending completing that point. Make the relationships clear through wording and order; sharing a topic is not enough. Respect the reader's time and intelligence by explaining the reasoning instead of making them reconstruct it.
+- When a paragraph reads like a checklist, give it structure: bullets for separate points, numbered steps when order matters, and nested items for supporting details. A general preference for prose is not a reason to hide a list in a paragraph.
+- Give separate instructions, checks, or scope decisions their own place when the reader needs them. Omit notes that do not help answer the reader's question.
+
+### Make caveats useful
+
+- Include a caveat only when it prevents a plausible misunderstanding or states a limitation that affects the reader's understanding, decision, or next action. Being technically true does not make it useful.
+- Before adding one, identify what the reader might reasonably infer without it and why that inference matters. Base that concern on the surrounding explanation, evidence, or known reader needs. Omit the caveat if you cannot do this; do not invent a concern to justify it.
+- Name the actual actor and action when qualifying behavior. Do not attribute an operation to the wrong kind of thing merely to deny that it performs it. A disclaimer about an unrelated or implausible behavior can create confusion instead of resolving it.
+- Keep necessary uncertainty, risks, permissions, and scope limits beside the claims they change, and explain the connection. Apply the relevance test before deciding where to put a qualification or how to word it.
+
+### Explain technical ideas
+
+Apply these principles adapted from John Ousterhout:
+
+- Give the reader the smallest complete explanation.
+- Explain intent, consequences, or a cause you have verified when the visible result does not explain them.
+- Use one accurate name for each thing.
+- **Never invent a label for an established concept, technology, component, service, operation, or data store. Use the name the codebase gives it. Do not replace that name with a nickname, a broader category, a compressed description, or your interpretation of its role.** If the name is uncertain, check the code before writing it. Explain what the named thing does without renaming it.
+- Describe observable behavior. Include implementation details when they help explain or verify that behavior.
+- Keep the assumptions, failure conditions, tradeoffs, and important exceptions needed to make the explanation accurate.
+
+For substantive writing or skill instructions, read:
+
+- `{{%_resources_%}}/communication-principles/WRITING_STYLEGUIDE.md` for plain language, connected explanations, and precise wording.
+- `{{%_resources_%}}/communication-principles/effective-prose.md` for claims supported by evidence and honest treatment of uncertainty.
+- `{{%_resources_%}}/communication-principles/technical-writing-ousterhout.md` for explaining complex technical ideas.

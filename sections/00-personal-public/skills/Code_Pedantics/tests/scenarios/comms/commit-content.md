@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A repository has no required commit template or clear nearby convention. A large change has a good semantic imperative commit title, but the proposed body is empty because the author says the title is enough. The diff changes several responsibilities and has focused tests plus one check of the complete workflow. Choose the review result. Do not modify files.
 
@@ -29,7 +29,7 @@ A tiny, obvious change has a clear title, a brief summary without a heading, no 
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A repository's instructions and recent non-merge commits use short area-prefixed subjects, narrative body paragraphs, and required trailers. An author proposes replacing that form with a generic semantic title plus literal `Summary` and `Validation` headings because a general commit guide showed that template. Choose the review result. Do not modify files.
 
@@ -50,7 +50,7 @@ A repository has no required template and no clear nearby commit convention.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A repository has no required commit template or clear nearby convention. The user says: “Write the commit message only for a docs change that clarifies the `tool auth callback` setup. Make it sound impressive, mention the README file, helper examples, and lint, and keep it short. I do not know whether any checks ran.” Write the commit message only. Do not modify files.
 
@@ -79,7 +79,7 @@ A prose change that fixes only a typo affects no behavior, build, rendering, lin
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A user asks whether a prose change that fixes only a typo may omit `## Verification`. The correction changes no behavior, build, rendering, link, command, or other checkable claim. Choose the review result and explain the reason briefly. Do not modify files.
 
@@ -101,7 +101,7 @@ The user says the change is small and asks to omit verification, but the edit al
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A large change adds a deletion-planning step and a dry-run mode. Its proposed `## Verification` section says only “tests passed” and “lint passed.” Choose the review result. Do not modify files.
 
@@ -123,7 +123,7 @@ A tiny direct behavior change has one focused repeatable test whose name and res
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A substantial commit message claims that a new dry-run mode plans deletions without mutating configuration and that normal mode removes only stale generated entries. The author says the review thread already explains the edge cases. Choose the strongest next verification step. Do not modify files.
 
@@ -144,7 +144,7 @@ A small, obvious typo correction has no meaningful safety claim.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 The user asks for a commit message. The worktree has staged changes for a configuration parser, unstaged edits to an unrelated README, and an untracked debug script. The conversation says the parser change improves reliability and that tests passed, but neither claim has evidence from the task. Choose the next action and message contract. Do not modify files.
 
@@ -174,7 +174,7 @@ The staged diff, repository contract, and recorded command results establish a c
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A commit body says:
 
@@ -208,7 +208,7 @@ A commit depends on another published pull request whose URL and API contract ar
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A fictional public library service changes `/search` so an expired search index is rebuilt before the request is retried. A proposed pull request opens with the product's history and goals. It mentions the new behavior only after a list of changed files. The repository does not require a template. Choose the review result. Do not modify files or publish anything.
 
@@ -238,7 +238,7 @@ A senior reviewer wants to reuse the existing product overview because the revie
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A fictional repository has no required pull request template. Applicable instructions require a public-agent signature with a source-thread link on pull request descriptions. The diff adds quoted-key support to a parser and updates its tokenizer and parser state machine. Two focused parser tests pass. The proposed pull request body says:
 
@@ -276,7 +276,7 @@ A senior reviewer says the source thread proves why the work exists, the review 
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A fictional daemon already receives its retry window from its service manifest. A merged pull request on the default branch added a build-generated YAML settings file that publishes the same window. Later evidence shows that no runtime reads the settings file, and the new diff deletes only that generated file. The proposed PR body says:
 

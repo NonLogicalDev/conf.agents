@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A root TypeScript component contains page markup, dialog markup, local widget state, shared editor state, persistence, and validation. A new dialog would add another large conditional block. Choose the next concrete refactor plan. Do not modify files.
 
@@ -25,7 +25,7 @@ The new markup is one small condition local to the page, with no reuse or new st
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Python benchmark package has authored files named `store.py`, `descriptor.py`, `export.py`, `window.py`, `runner.py`, `telemetry.py`, `render.py`, and `comparison.html`. They split into coherent fixture, fetch, and report responsibilities. The package also contains `__init__.py`, `__main__.py`, `pyproject.toml`, `README.md`, generated historical output, and tests. Explain the naming change you would request without modifying files.
 
