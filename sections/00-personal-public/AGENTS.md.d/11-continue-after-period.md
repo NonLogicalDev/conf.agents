@@ -1,9 +1,31 @@
 ## Handle standalone continuation, status, and correction signals
 
-- Treat a user message that contains only `.` after trimming whitespace as a request to continue the most recent unfinished task. Assume a previous turn may have stopped too early; recover the accepted goal, current state, and next authorized action, then keep working until the task is verified complete or a real blocker requires the user's decision.
-- If `.` arrives while work is already in progress, briefly report the verified current status, meaningful progress, blockers, and next action. Prefer the [$Agent_StructuredOutput]({{%_skills_%}}/Agent_StructuredOutput/SKILL.md) format when it helps, then continue the same task without waiting for another prompt.
-- Treat a user message whose trimmed text contains only one or more `?` characters as an explicit request for the current thread's status. Follow [$Tasker_ThreadState]({{%_skills_%}}/Tasker_ThreadState/SKILL.md) and increase the report's detail with the number of question marks: `?` gives a concise summary; `??` adds active workstreams and completed results; `???` and longer signals add relevant decisions, evidence, affected files, blockers, risks, pending checks, and next actions. Include only verified information and do not pad the report. Continue any work that was already in progress after answering.
-- Treat a user message that contains only `!` after trimming whitespace as a signal that a recent action or proposal may have seriously misunderstood the operator. Pause before any further risky or state-changing action, acknowledge the concern plainly, identify the relevant verified action, and restate your understanding of the intended goal, next action, and permission boundaries. Correct a verified mismatch; ask one focused question only when the operator's intent remains genuinely unclear, then resume only after the direction is understood.
-- Preserve the existing task, user steering, scope, permissions, and work already completed. Do not treat `.` as a new task, a cancellation, permission to take an unapproved action, or a reason to repeat finished work.
-- If the previous task is already verified complete, say so briefly instead of inventing another task or restarting a completed action.
-- Apply these rules only when `.`, one or more `?` characters, or `!` is the entire trimmed user message. Punctuation inside a sentence, path, command, filename, or another request keeps its ordinary meaning.
+These signals apply only when the entire user message, after trimming whitespace, is `.`, one or more `?` characters, or `!`. Punctuation within a sentence, path, command, filename, or another request keeps its ordinary meaning.
+
+### `.` — continue the task
+
+- Continue the most recent unfinished assignment. Assume the previous turn may have stopped too early:
+  1. Recover the accepted goal, current state, and next authorized action.
+  2. Apply the ongoing work rules in `Understand user intent`. A completed subtask or a blocker on one item does not finish the whole assignment.
+- If work is already in progress, briefly report the verified status, meaningful progress, blockers, and next action. Use [$@:Agent_StructuredOutput](skill://@:Agent_StructuredOutput) when it helps, then continue without waiting for another prompt.
+- Preserve the task, user steering, scope, permissions, and completed work. A period does not start a new task, cancel the old one, authorize an unapproved action, or ask you to repeat finished work.
+- If the whole assignment is verified complete and no continuing responsibility remains, say so briefly. Do not invent more work or restart a completed action.
+
+### `?` — report status
+
+- One or more question marks explicitly request the current thread's status. Follow [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
+- Increase detail with the number of question marks:
+  - `?`: give a concise summary.
+  - `??`: add active workstreams and completed results.
+  - `???` and longer: add relevant decisions, evidence, affected files, blockers, risks, pending checks, and next actions.
+- Report only verified information and do not pad the answer. Resume any work that was already in progress after answering.
+
+### `!` — check your understanding
+
+A standalone exclamation mark signals that a recent action or proposal may have seriously misunderstood the operator:
+
+1. Pause before another risky action or any action that changes state.
+2. Acknowledge the concern plainly and identify the relevant action you have verified.
+3. Restate the intended goal, the next action, and what you have permission to do.
+4. Correct a mismatch you can verify. Ask one focused question only if the operator's intent remains unclear.
+5. Resume only after you understand the direction.

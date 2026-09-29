@@ -6,7 +6,11 @@ Source: [Julia Evans: How to ask good questions](https://jvns.ca/blog/good-quest
 
 ## Make the question easy to answer
 
-Start with the outcome you are trying to achieve. State your current understanding, the relevant context, what you checked, and the exact point where you are stuck.
+A small amount of research can make your question much clearer. Use what you learned to give the other person enough context:
+
+1. Start with the outcome you are trying to achieve.
+2. State your current understanding and the relevant context.
+3. Explain what you checked and where you are stuck.
 
 Ask a concrete question rather than requesting a broad explanation:
 
@@ -16,18 +20,26 @@ Ask a concrete question rather than requesting a broad explanation:
 - Ask for a specific fact, clarification, decision, or next step.
 - Include enough evidence to make the question understandable on its own.
 
-A useful question can often take this shape:
+A question can put the setup in a short list:
 
-> I am trying to achieve [outcome]. My current understanding is [context]. I checked [evidence]. Is [specific understanding] correct, or should I look at [specific alternative]?
+- I am trying to achieve [outcome].
+- My current understanding is [context].
+- I checked [evidence].
+
+Is [specific understanding] correct, or should I look at [specific alternative]?
 
 ## Choose whom and when to ask
 
-Choose a person with relevant knowledge or ownership. Consider their availability, how long an answer will take, and whether the expected benefit is worth the interruption.
+Choose a person with relevant knowledge or ownership. Before asking, consider:
 
-A small amount of research can make your question much clearer. Share useful answers when doing so will help other people too.
+- Are they available?
+- How long will an answer take?
+- Is the expected benefit worth the interruption?
 
-## Keep asking human
+## Leave room to learn
 
 Imperfect questions are normal. Asking for clarification is part of learning, and a thoughtful question can make hidden assumptions visible to everyone.
 
-Preparation should make collaboration easier. It should not become a test, discourage questions, or make someone exhaust every possible alternative before asking for help.
+Preparation should make collaboration easier. Do not turn it into a test, discourage questions, or require someone to exhaust every possible alternative before asking for help.
+
+Share useful answers when they will help other people too.

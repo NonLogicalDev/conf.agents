@@ -58,7 +58,7 @@ When the user requests all outputs in one section, use that section. Preserve th
 - `Sent <verified timestamp>` — [<name>](<verified link>).
 ```
 
-Do not repeat the same links in the section for current workstreams unless the user asks. A separate output section is valid; dropping the owner or guessing the time is not.
+Follow the applicable **User communication references** rules when an output first appears in an earlier summary, blocker, or workstream. Give its identifier and title or description beside the claim and link it there when available. Repeat the link in the output inventory when needed. If the user explicitly requests all links only in the output section, use names and identifiers in the earlier prose and place the links in that section. A separate output section is valid; dropping the owner or guessing the time is not.
 
 ## Requested Short Report
 

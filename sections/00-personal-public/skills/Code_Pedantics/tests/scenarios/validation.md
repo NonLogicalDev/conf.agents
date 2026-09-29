@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 The repository command `refresh-toolchain-pin --config <path>` reads the expected `version` and `sha256` from `toolchain.lock`. It rewrites those two lines between `# BEGIN TOOLCHAIN PIN` and `# END TOOLCHAIN PIN` in the selected `toolchain.conf`. The repository includes `testdata/toolchain.conf`, a non-production file with the same marker contract. Unit tests pass. The user asks whether the command is ready. Choose the validation plan. Do not modify the production configuration.
 

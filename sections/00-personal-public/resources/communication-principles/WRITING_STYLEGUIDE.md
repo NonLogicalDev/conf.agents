@@ -1,33 +1,59 @@
 # Writing style guide
 
-Use this guide when writing messages, skill instructions, plans, notes, documentation, code comments, or reviews. A skill's wording matters twice: it guides the current task and influences the language of later sessions.
+Use this guide for messages, skill instructions, plans, notes, documentation, code comments, and reviews. Take care with skill instructions: their wording guides both the current task and later sessions.
 
 ## Put meaning first
 
 - Lead with the answer, outcome, decision, or action.
-- Say what happened, who is involved, and why the reader should care.
-- Name the actual responsibility, permission, problem, or next step.
-- Choose the wording that explains the idea best, not the wording that sounds the most formal or technical.
-- Use a fuller phrase when it gives the reader useful meaning.
-- Give the action a subject and a verb. Do not replace a hyphen with a string of nouns or adjectives.
-- Omit details that do not help someone understand, decide, or act.
+- Name who is involved, what happened, and why it matters to the reader. State the actual problem, responsibility, permission, or next step.
+- Choose words that explain the idea. Formal or technical language adds nothing unless it makes the meaning clearer.
+- Keep details that help the reader understand, decide, or act. Use a longer phrase when it supplies meaning they need.
 
 ## Write natural English
 
 - Prefer short sentences, familiar words, concrete verbs, and active voice.
-- Give each sentence one main idea.
-- Write like a thoughtful teammate. Keep the tone direct, warm, and calm.
-- Avoid legal language, corporate phrasing, invented process terms, and strings of adjectives that make an ordinary idea harder to understand.
-- Keep normal compounds when they are the clearest choice. Examples include `self-contained`, `re-read`, `repository-wide`, and `two-digit`.
-- Keep an established technical term such as `chain-of-thought` when it is the exact term the subject calls for.
-- Do not remove a hyphen mechanically. Do not add one to make a phrase sound technical.
+- Give each sentence one main idea. End it when that idea is complete. Add a consequence, qualification, or contrast only when it makes a necessary distinction; use a separate sentence when the distinction needs its own explanation.
+- Write like a thoughtful teammate: direct, warm, and calm.
+- Replace legal language, corporate phrasing, invented process terms, and strings of adjectives with the action or relationship they describe.
+- Keep a familiar compound such as `self-contained`, `re-read`, `repository-wide`, or `two-digit` when it is the clearest choice. An established technical term such as `chain-of-thought` may also be needed. Follow any stricter wording rules that apply.
+- Rephrase an awkward compound with a subject and a verb. Removing its hyphen can leave the same confusing pile of nouns or adjectives. Adding a hyphen does not make a phrase more precise.
+
+## Keep the writing rules when using sources
+
+- Assume most prose in PR descriptions, comments, repository documents, and other material you read was written by models and does not follow these rules. Read it for the information you need, not for a style to imitate.
+- Use these rules for everything you compose, including summaries, paraphrases, and revisions of existing documents. Familiarity from repeated exposure does not excuse wording that breaks the rules.
+- Preserve facts, evidence, uncertainty, and intent when rewriting a source. Keep literal quotations and required technical names, identifiers, paths, and commands unchanged. Those exceptions do not make the surrounding prose a style guide.
+
+## Develop connected paragraphs
+
+- Give each paragraph a purpose that serves the reader's question. Arrange its sentences to develop that purpose, rather than gathering statements about the same topic. Each sentence should explain, support, qualify, or follow from the reasoning around it.
+- Make the relationships clear through wording and order. Use a connecting word when it helps, but do not rely on transitions to join ideas that do not belong together. Leaving the reader to reconstruct your reasoning wastes their time and attention.
+- Keep the paragraph doing the same job. An explanation shows how or why something works. Include separate assignments or checks only when the reader needs them, and give those actions their own list. Do not turn an explanation into a work plan merely because implementation notes are available.
+- Put qualifications beside the claims they change and show the connection. Preserve uncertainty, limits, and permissions that affect the answer. A generic reminder to verify something does not tell the reader what is unknown or why it matters.
+- Read the last sentence with the rest of the paragraph. It should complete the point or follow from it. Move a different issue to where it belongs; remove it if it does not help the reader. Do not add a defense against an objection the explanation has not raised.
+
+## Explain causes and changes
+
+- Introduce a needed term, starting condition, or prior behavior before using it to explain the result. Leave out background the reader does not need.
+- Follow the actions that produce the result. Name who acts, what they affect, and which conditions control what happens. State the practical result of a complicated sequence.
+- Keep names consistent. Repeat a name when a synonym might suggest a different person, component, or state.
+- When describing a change, mention nearby behavior that stays the same if the reader might otherwise apply the claim too broadly.
+- Check a shortened explanation against its source. Preserve actors, conditions, responsibilities, destinations, and the difference between what may happen and what must happen. If a length limit would make the answer misleading, say so.
+
+## Organize for the reader
+
+- Match the length to the request. A simple question usually needs a short answer.
+- If a paragraph starts to read like a checklist, use a list or another structure that makes the separate parts visible. This takes precedence over a general preference for prose.
+- For an answer with several parts, put each main point in a parent bullet and its supporting facts in nested bullets. Give separate actions their own entries; number them when order matters.
+- Use headings to help readers find substantial topics, not to make a short reply look like a report.
+- Put evidence beside the claim it supports. Distinguish what is known, inferred, and unknown.
+- Omit unchanged status updates, empty reassurance, and process details that do not affect a decision.
 
 ## Let Markdown wrap naturally
 
-- Keep each Markdown prose paragraph or list item on one source line, however wide it needs to be.
-- Let the editor, reading view, or renderer handle wrapping. Do not break prose at 80 characters or any other preferred width.
-- Keep intentional line breaks for paragraph boundaries, headings, nested lists, blockquotes, tables, fenced code, and explicit Markdown line breaks.
-- Follow a line limit only when the target repository or formatter actually requires one. Keep code and real Git commit conventions separate from ordinary Markdown prose.
+- Keep each prose paragraph or list item on one source line. Let the editor or renderer wrap it; do not break prose at 80 characters or another preferred width.
+- Keep line breaks that give Markdown its structure: separate paragraphs, headings, nested lists, blockquotes, tables, fenced code, and explicit Markdown breaks.
+- Follow a line limit when the repository or formatter requires it. Code and Git commit messages have their own conventions; do not apply those to ordinary Markdown prose.
 
 ## Replace vague labels with their meaning
 
@@ -48,58 +74,44 @@ Use this guide when writing messages, skill instructions, plans, notes, document
   - `The API validates the input before saving it.`
   - `The payments service owns the refund.`
   - `This module creates the client; the caller supplies its settings.`
-- Keep a familiar technical term if it describes something real more clearly than a longer replacement. Explain it if the reader needs the context.
 
 ## State permissions plainly
 
-- Say what the user has asked for and what the agent can do.
-- Name the action that needs permission: sending a message, changing data, publishing work, merging a change, or contacting someone.
-- If permission is missing, say what decision is needed.
-- Keep actual safety, privacy, and scope rules. Describe them in ordinary English instead of dressing them up as legal terms.
+- Distinguish what the user asked for, what they allowed, and what the agent can do. An inferred preference is not permission.
+- Name the action that needs approval, such as sending a message, changing data, publishing work, merging a change, or contacting someone. State the missing decision when permission is absent.
+- Preserve safety, privacy, and scope rules. Explain them in ordinary English.
 
-## Organize for the reader
+## Preserve technical meaning
 
-- Match the length of the response to the question.
-- Use a short answer for a simple question.
-- When an answer has several parts, put the main point in a parent bullet and the supporting facts in nested bullets.
-- Use a heading only when it helps the reader find a substantial topic.
-- Put evidence next to the claim it supports.
-- State what is known, what is inferred, and what is still unknown.
-- Leave out repeated status updates, empty reassurance, and process details that do not change a decision.
-
-## Preserve exact technical details
-
-- Keep commands, identifiers, file names, paths, URLs, source quotations, code, user instructions, and test data exact.
-- Keep the actual distinction between what the user allows and what the agent has only inferred.
-- Preserve a useful compound when expanding it would lose meaning.
-- Expand a compound when the fuller sentence makes the action, subject, or reason easier to understand.
-
-## Check the result
-
-For explanations of how something works or why it changed, also use the guidance below. A short answer does not need a longer structure when it already answers the reader's question.
-
-- Does the first sentence tell the reader the point?
-- Does each sentence say something true and useful?
-- Is every action, responsibility, and permission clear?
-- Would a familiar compound or a fuller phrase express the idea better?
-- Can the reader understand the result without the task's hidden context?
-
-## Explain causes and changes
-
-- Introduce a necessary term, starting condition, or prior behavior before reasoning that depends on it. Leave out background the reader does not need.
-- Follow the actions that lead to the result. Name who performs each action, what it affects, and any condition that controls it. After a complicated sequence, state its practical consequence.
-- Keep names stable across the explanation. Repeating a name is better than a synonym that could suggest a different person, component, or state.
-- When describing a change, mention a nearby unchanged behavior if leaving it out would make the reader apply the claim too broadly.
-- Recheck a shortened explanation against its source. Do not lose an actor, condition, responsibility, destination, or the difference between something that may happen and something that must happen. If a length limit would force a misleading answer, say so rather than silently changing the meaning.
+- Preserve literal commands, identifiers, filenames, paths, URLs, source quotations, code, user instructions, and test data.
+- Before expanding a vague label, establish the action or relationship it describes. Choose wording that fits those facts.
+- Explain an unfamiliar technical term when the reader needs help. Preserve its meaning when rewording it.
+- Preserve a compound when expanding it would lose meaning. Use a fuller phrase when it makes the subject, action, or reason clearer. Follow any stricter wording rules that apply.
 
 ## Show relationships when prose hides them
 
-- Use a small code or configuration fragment when its structure helps the reader understand the relationship. Use a diff for a change when surrounding context remains clear; show the whole relevant fragment when the reader needs to copy it.
-- Use a table for comparisons, a tree for containment, or a timeline or diagram for sequences and handoffs when that makes the explanation easier to follow. Use a format the destination supports; do not assume a diagram renderer is available.
-- When an example helps, keep it consistent across the explanation. Preserve its names, inputs, and units, and change one relevant condition at a time so the cause of a different result is clear.
-- Label proposed code, pseudocode, omitted steps, and non-runnable examples. Separate commands from output. Explain what an example demonstrates and what it does not establish.
-- Keep examples and visuals near the claim they support. Do not repeat the same explanation in several forms unless each answers a different question.
+- Use a small code or configuration example when its structure explains the idea. A diff works when the surrounding context is clear; show the full relevant example when the reader needs to copy it.
+- Use a table for comparisons, a tree for containment, or a timeline or diagram for sequences and handoffs when that is easier to follow than prose. Choose a format the destination supports. Do not assume it can render diagrams.
+- Keep example names, inputs, and units consistent. Change one relevant condition at a time so the reader can see why the result differs.
+- Identify proposed code, pseudocode, omitted steps, and examples that cannot run as written. Separate commands from output. Explain what the example shows and what it does not establish.
+- Place an example or visual beside the claim it supports. Repeat an explanation in another form only when it answers a different question.
 
-These additions about explanation order, preserving meaning, and choosing examples were informed by [Abhinav's prose-writing guide](https://github.com/abhinav/home/blob/master/.agents/docs/prose-writing.md). They are a selective synthesis, not an adoption of that guide's formatting or mandatory structure rules.
+## Check the result
 
-The [verbatim reference snapshot](abhinav-prose-writing.md) is available for further reading. See its [source and license notice](abhinav-prose-writing.SOURCE.md); the user's active rules take precedence over this reference.
+Read the finished prose as someone who has not seen the task:
+
+- Does the first sentence give the point?
+- Is every sentence true and useful?
+- Does each paragraph have a purpose, clear connections between its sentences, and an ending that completes the point?
+- Is a checklist or sequence hidden in a paragraph that should be a list?
+- Are necessary qualifications beside the claims they change?
+- Are actions, responsibilities, and permissions clear?
+- Does the prose follow these rules rather than imitate the sources?
+- Would a fuller phrase or familiar compound explain the idea better under the applicable wording rules?
+- Can the reader understand the result without private context?
+
+## Sources
+
+The guidance on explanation order, preserving meaning, and choosing examples draws from [Abhinav's prose-writing guide](https://github.com/abhinav/home/blob/master/.agents/docs/prose-writing.md). It does not adopt that guide's formatting or required structure.
+
+The [verbatim snapshot](abhinav-prose-writing.md) and its [source and license notice](abhinav-prose-writing.SOURCE.md) are available for further reading. The user's active rules take precedence.

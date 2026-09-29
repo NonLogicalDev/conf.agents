@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A pull request with one commit has a commit message saying a dry run leaves configuration unchanged and that an isolated check of the complete workflow proved it. The pull request description still says the command deletes stale entries immediately and lists only focused unit tests. No merge strategy is stated. The author says the commit is correct, so the stale pull request text is fine. Choose the review result. Do not modify files.
 
@@ -26,7 +26,7 @@ The pull request is already open and reviewers have started reading it.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A normal pull request that uses a squash merge and has one branch commit is already published. The author amends the commit message and pushes a new head to the forge, but the published PR title and description still contain the old message. The author says the code is now correct and metadata can wait until review. Choose the next required action. Do not modify files or external state.
 
@@ -47,7 +47,7 @@ The push is late in the day and reviewers have already opened the PR.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A repository explicitly uses non-squash merges for a pull request with two commits. Each commit has its own standalone message, and the repository requires a rollout field that appears only in the PR. Choose the message format before publication. Do not modify files or external state.
 
@@ -63,7 +63,7 @@ A repository explicitly uses non-squash merges for a pull request with two commi
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A normal PR that uses a squash merge and has one branch commit has a carefully reviewed title and description, but the branch commit still has an older, less accurate message. The author says the branch commit should win because it was written first. Choose the review result. Do not modify files or external state.
 
@@ -77,7 +77,7 @@ A normal PR that uses a squash merge and has one branch commit has a carefully r
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A normal workflow using a squash merge keeps three branch commits instead of squashing it locally. The PR title and description contain the current canonical message, but only the first commit has that message; the last commit still has stale prose. Choose the review result. Do not modify files or external state.
 
@@ -93,7 +93,7 @@ A normal workflow using a squash merge keeps three branch commits instead of squ
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A normal repository using a squash merge with one commit requires a rollout field that cannot appear in the final commit body. Choose the message contract before publication. Do not modify files or external state.
 
@@ -109,7 +109,7 @@ A normal repository using a squash merge with one commit requires a rollout fiel
 
 ### Prompt
 
-Use `$Code_Pedantics` and the active destination-authorship skill.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics) and the active destination-authorship skill.
 
 A normal branch using a squash merge with one commit has this unsigned canonical body:
 

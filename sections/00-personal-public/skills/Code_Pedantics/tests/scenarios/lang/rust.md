@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A changed Rust module imports `super::*`, hand-aligns a long async expression that `rustfmt` collapses, and leaves a joined comparison inline even though it decides whether an archived record may be mutated. The associated test has several fixtures and proves only that an unrelated record did not change; its setup and negative assertion have no rationale. Choose the review result. Do not modify files.
 
@@ -27,7 +27,7 @@ A test module uses a prelude glob required by the repository, a short expression
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Rust refactor extracts one implementation unit from `ledger.rs`. The code can live in either `ledger_events.rs` or `ledger/events.rs`. No other `ledger` child modules exist or are planned, and the extraction does not introduce a public hierarchy of child modules. The nested layout is already drafted, the change is small, `rustfmt` passes, and a senior reviewer says either layout is idiomatic. Choose the review result. Do not modify files.
 
@@ -50,7 +50,7 @@ The `ledger` namespace owns several coherent child modules, exposes an intention
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Rust file imports long lists of domain types, constants, and functions from several crates. Most identifiers appear only once or twice, and several names are generic without their crate. Replacing the lists with qualified uses such as `archive_graph::NodeIndex` and `archive_store::RecordId` would make each identifier's owner visible. The existing imports compile, `rustfmt` passes, and a reviewer says exact item imports are always cleaner than qualified paths. Choose the review result. Do not modify files.
 

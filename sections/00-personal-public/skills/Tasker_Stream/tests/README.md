@@ -1,6 +1,6 @@
 # Tasker Stream Behavioral Tests
 
-Run each scenario with a fresh subagent that has an empty context window. Give the subagent `$Tasker_Stream` and the scenario prompt, but do not show the expectations.
+Run each scenario with a fresh subagent that has an empty context window. Give the subagent [$@:Tasker_Stream](skill://@:Tasker_Stream) and the scenario prompt, but do not show the expectations.
 
 Keep scenarios read-only or use a temporary directory created for the test. Capture the raw response and compare it with the expectations afterward.
 
@@ -18,6 +18,6 @@ Use [scenarios.md](scenarios.md) for the behavioral prompts and pressure cases.
 
 Scenario 24 covers the separate owner-thread register, additional allowed owners, revoked and delegated threads, and safe legacy migration. The helper tests verify membership checks and OWNERS.md as the sole authority, without README ownership metadata.
 
-Scenario 25 covers explicit `$Tasker_Stream migrate`, resolution of current installed instructions, safe structural migration with active work, ownership boundaries, and idempotent verification. This is an agent workflow, not a new helper subcommand.
+Scenario 25 covers explicit [$@:Tasker_Stream](skill://@:Tasker_Stream) migrate, resolution of current installed instructions, safe structural migration with active work, ownership boundaries, and idempotent verification. This is an agent workflow, not a new helper subcommand.
 
 Scenario 26 checks OWNERS.md-only authority despite stale README/AGENTS declarations, removal of duplicates during explicit migration, and no enrollment from legacy metadata.

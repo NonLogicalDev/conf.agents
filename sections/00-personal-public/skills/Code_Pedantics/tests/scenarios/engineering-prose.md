@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A draft external message has a required destination signature, a canonical resource link, one concrete ask, and uncertain evidence. The user asks for a wording cleanup only. Choose the response. Do not send anything.
 
@@ -18,7 +18,7 @@ A draft external message has a required destination signature, a canonical resou
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A README draft lists changed files and helper names, but it does not say who the tool is for, which prerequisites it needs, how to run the supported path, what result to expect, or what it may modify. Choose the review result. Do not modify files.
 
@@ -34,7 +34,7 @@ A README draft lists changed files and helper names, but it does not say who the
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; agent `/root/cache_worker` should follow plan `P1`.” The real work is to make cache invalidation reject stale entries, keep existing cache reads compatible, and verify the focused stale-entry regression test. Rewrite the description for an implementer who has not seen the conversation. Do not modify files.
 
@@ -47,15 +47,23 @@ A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; 
 
 ### Pressure Variant
 
-The author says the private labels are needed for traceability.
+The source notes say the private labels are needed for traceability. The user has not asked to publish them.
 
 - Translate private coordination into descriptive behavior and canonical identifiers instead of copying internal labels into the external artifact.
+
+### Explicit Public Inclusion
+
+The user explicitly asks to preserve `{T03}` in the public Linear description as a reference to this work. Rewrite the description without changing files or sending it.
+
+- Preserves `{T03}` with a description of the work because the user explicitly authorized that label for this public artifact.
+- Keeps unrelated private plan names, worker paths, and agent coordination out of the description.
+- Does not extend that permission to other public messages.
 
 ## 28 Make Migration And Design Documents Operable
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A migration design note lists changed files, helper names, and discovery history. It says “roll this out carefully,” but does not name the reader, the outcome, the starting or target state, the order of mutations, validation, rollback, required permission, or remaining risk. Choose the review result. Do not modify files.
 
@@ -86,7 +94,7 @@ A short design note only records a local, reversible choice and has no rollout o
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A reviewer asks you to format this Markdown guide and says that all prose must fit within 80 characters. Return the corrected Markdown without modifying files.
 

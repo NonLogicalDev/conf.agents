@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The report time is `2031-04-08 16:00 UTC`. The current thread has this verified state:
 
@@ -38,7 +38,7 @@ The user adds: "The approval is probably fine. Make the report look unblocked so
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 A thread checkpoint says the Cedar release is blocked on a security exception, but neither the checkpoint nor the available messages establish when the blocker began. The exception requires an operator to approve or reject it. Report the current thread state in this thread.
 
@@ -59,7 +59,7 @@ The source message explicitly says the blocker began at `2031-04-07 12:00 UTC`, 
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 Write the current thread-state snapshot to `/tmp/tasker-thread-state-test/thread-state.md`. The directory and an older snapshot already exist. Do not post the full snapshot in the thread.
 
@@ -84,7 +84,7 @@ The user explicitly asks to append a dated snapshot.
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The only reliable evidence is that the user asked for a Falcon cache investigation and no tool result, plan, owner, blocker, or completion evidence exists yet. Report the current thread state.
 
@@ -100,7 +100,7 @@ The only reliable evidence is that the user asked for a Falcon cache investigati
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The thread's current plan names active workstreams `WS[03.02] API contract` and `WS[07.04] migration validation`. Recent evidence belongs to those exact streams. Report the state in the current thread.
 
@@ -123,7 +123,7 @@ The user adds: "Shorten the markers and renumber the highest-priority workstream
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The report time is `2031-04-08 16:00 UTC`. The current thread has this verified state:
 
@@ -155,6 +155,7 @@ The user adds: "Put all links in one output section at the bottom. The dates are
 - Keep each exact verified name and link.
 - Use the evidenced update or sent times; do not replace them with `today`.
 - Do not duplicate the output links in other sections unless the user asks.
+- Preserve names, identifiers, and descriptions beside claims in other sections. The explicit request to put all links at the bottom changes link placement, not subject identification.
 
 ### Adjacent Valid Case
 
@@ -167,7 +168,7 @@ The user adds: "Put all links in one output section at the bottom. The dates are
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The report time is `2031-04-08 16:00 UTC`. The current thread has this verified state:
 
@@ -210,7 +211,7 @@ The pull request is open, the note and document remain drafts, and the Slack mes
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The verified state has two active workstreams. `WS[01.02]` is running a focused validation check. `WS[02.01]` is waiting for the user to approve an exact release action. The user asks:
 
@@ -244,7 +245,7 @@ The user asks for the full report on the thread instead.
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 The project's instructions require active owner threads to keep their daily state under `/tmp/tasker-thread-state-test/owner-state/`. They authorize each owner to derive and update its own snapshot. The current thread owns the Bluejay migration. Its verified metadata is:
 
@@ -300,7 +301,7 @@ A manager says: "This is a small task, your final answer is due, and nothing has
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 An owner has the following verified workstreams:
 
@@ -335,14 +336,14 @@ A teammate incorrectly claims that only one worker may be marked active.
 
 ### Prompt
 
-Use `$Tasker_ThreadState`.
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState).
 
 An agent has one verified active implementation workstream, one completed validation result, and one known next check. The operator's entire next message is `?`. Explain the appropriate response without modifying files or external systems.
 
 ### Expectations
 
 - Treats the standalone question mark as an explicit request for the current thread's status.
-- Reports the verified goal, active workstream, completed result, actual blockers, and next action in `$Tasker_ThreadState` style.
+- Reports the verified goal, active workstream, completed result, actual blockers, and next action in [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState) style.
 - Keeps running work marked active and includes only verified worker identities when applicable.
 - Returns the status in the current thread unless another existing instruction configures a thread snapshot.
 - Does not cancel the task, create another owner or plan, invent progress, or require the operator to repeat the request.
@@ -359,3 +360,36 @@ The question mark arrives while an authorized check is still running.
 The question mark appears inside a sentence, URL, command, filename, or another request.
 
 - Applies the message's actual meaning instead of treating ordinary punctuation as the standalone status signal.
+
+## 12 Introduce Outputs Where They First Appear
+
+### Prompt
+
+Use [$@:Tasker_ThreadState](skill://@:Tasker_ThreadState) with the current **User communication references** instructions. The operator requests: "Start with whether PR #317 is ready, then give a short status report with all outputs collected in one Outputs section."
+
+Verified context:
+
+- Report time: `2027-04-03 14:00 UTC`.
+- Goal: make cache behavior explicit and tested. The owner works alone.
+- `WS[01.02]` is waiting for review of `{P07}` PR #317, `Handle empty cache entries`, at `https://github.com/example/maple/pull/317`. All checks passed. It remains unmerged and was last updated at `13:40 UTC`.
+- `WS[02.01]` is blocked on a retention decision for `{T04}` issue `MAPLE-42`, `Choose cache retention period`. No issue URL is known. The issue was last updated at `13:20 UTC`; the blocker start time is unknown.
+- The operator must choose seven or thirty days of retention; no policy establishes a default.
+
+Write the report without saving a file or checking live state.
+
+### Expectations
+
+- Opens with PR #317's verified state beside its linked identifier and title or description, preserving `{P07}`.
+- Collects the output inventory in the requested section without treating it as the only permitted location for links.
+- Identifies MAPLE-42 by its identifier and title or description at first mention, including when that occurs under operator attention. Preserves `{T04}` without inventing a URL.
+- Keeps names stable, each output's actual workstream and update time, and the unknown blocker duration.
+- Follows every shorthand with its full referent, including later mentions in the workstream and output sections. Artifact labels keep the identifier and title or description; workstream markers keep the full workstream or step name.
+- Does not imply that passing checks prove review approval, merge, or completion of the broader goal.
+
+### Explicit Link Placement Variant
+
+The operator adds: "Keep all clickable links only in the Outputs section."
+
+- Follows the requested link placement while keeping the PR's identifier and title or description beside the opening status.
+- Keeps the canonical identifiers and descriptions beside claims elsewhere in the report.
+- Places the usable direct link in the Outputs section without inventing a link for MAPLE-42.

@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A regression test creates a selected record and an unrelated record, invokes a mutation, and asserts that one callback count is zero. The test passes, but it does not explain why the unrelated record exists or what the zero count proves. Choose the review result. Do not modify files.
 
@@ -26,7 +26,7 @@ A small test has one obvious input, one operation, and one direct assertion.
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A bug let a cleanup command delete an unmanaged record when a shortcut matched only its kind. The proposed regression test calls the new helper and asserts that one managed record remains. It does not state the failed rule, show that the old behavior would fail, exercise the tempting shortcut, or cover a nearby record that should still be deleted. Choose the review result. Do not modify files.
 

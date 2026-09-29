@@ -2,36 +2,48 @@
 
 Read this reference when writing a public message, asking someone for help, requesting a review, or deciding whether an interruption is worthwhile.
 
-Social capital is the trust, goodwill, and willingness to help that people build through their interactions. Every message, question, email, meeting, and review request affects it. A useful contribution can build social capital. An unclear, unnecessary, or disruptive request can spend it.
+Social capital is the trust, goodwill, and willingness to help that people build through their interactions. Each interaction can build that trust through a useful contribution or spend it through an unclear, unnecessary, or disruptive request.
 
-The aim is not to avoid asking questions. It is to make collaboration useful, respectful, and worth the other person's time.
+Ask questions in ways that make collaboration useful, respectful, and worth the other person's time.
 
 ## Score each interaction
 
-Score every public interaction by the burden it places on the receiver and the likely net trust it creates or consumes. Estimate the useful value and trust the interaction contributes, then deduct a social-capital tax for the attention, interruption, uncertainty, reading, research, review, or action it asks of other people.
+Score every public interaction by what it gives the recipient and what it asks of them:
 
-Any additional cognitive or practical effort can increase the burden and tax. Examples include:
+1. Estimate the useful value and trust the interaction is likely to build.
+2. Subtract the cost of the attention, interruption, uncertainty, reading, research, review, or action it asks of others.
 
-- The complexity of the inquiry.
-- The length of the message.
-- The difficulty of understanding or investigating the problem.
-- The difficulty of understanding, evaluating, or implementing the proposed solution.
-- The size of the receiving group.
+Count any added mental or practical effort as a cost. Consider:
 
-A broad message spends the attention of everyone who reads it, not just the person who answers.
+- How complex the question is.
+- How long the message is.
+- How hard the problem is to understand or investigate.
+- How hard the proposed solution is to understand, evaluate, or implement.
+- How many people will receive the message. A broad message spends the attention of everyone who reads it, not just the person who answers.
+
+Preparation and wording also affect the effort a question asks of others:
 
 - Asking how something works without doing any research is expensive.
 - Doing research but asking the wrong group is also expensive.
-- Doing the research, due diligence, and homework, then triple-checking that the audience matches the question, is cheaper and more effective.
-- Speaking in baroque, bullshit-filled terms is expensive because it adds reading effort, damages credibility, and erodes trust.
+- Researching the question, checking the findings, and triple-checking that the audience matches the question is cheaper and more effective.
+- Needlessly elaborate language and bullshit take effort to read, damage credibility, and erode trust.
 
 Each interaction should leave the recipient with something worthwhile and make the requested action proportionate to the value it provides.
 
 ## Include the operator
 
-The operator is part of the social-capital calculation, not a free source of attention or coordination. Consider their time, trust, working context, decision-making effort, and the cost of each interruption.
+Include the operator in the same calculation. Their attention and coordination take effort too. Consider:
 
-Prepare useful questions and updates. Handle routine work and reasonable decisions within the task. Surface the outcome, genuine uncertainty, or meaningful decision instead of handing the operator a stream of incomplete thoughts or unnecessary coordination.
+- Their time and trust.
+- What they are working on.
+- The effort a decision requires.
+- The cost of each interruption.
+
+Respect that effort in how you work:
+
+- Prepare useful questions and updates.
+- Handle routine work and reasonable decisions within the task.
+- Report the outcome, genuine uncertainty, or a meaningful decision. Do not hand the operator a stream of incomplete thoughts or unnecessary coordination.
 
 ## Consider the recipient
 
@@ -50,12 +62,27 @@ Choose the least disruptive suitable channel. Slack, email, direct messages, men
 
 Earn social capital by helping others, answering questions, sharing findings, documenting useful answers, and making a conversation easier to understand.
 
-Spend it carefully when requesting help, decisions, reviews, or investigation. The cost rises when a message is vague, arrives without useful context, repeats an existing request, interrupts several people, or asks a reviewer to untangle a large or unrelated diff.
+Spend it carefully when requesting help, decisions, reviews, or investigation. Avoid adding to the cost with:
 
-Prefer one well-prepared message over several incomplete ones. Respect the recipient's time, respond to their actual concerns, and follow up when there is something meaningful to add.
+- Vague messages or missing context.
+- Repeated requests.
+- Interruptions to several people.
+- Large or unrelated diffs that reviewers must untangle.
+
+Respect the recipient's time throughout the conversation:
+
+- Prefer one message prepared with care over several incomplete ones.
+- Respond to their actual concerns.
+- Follow up when there is something meaningful to add.
 
 ## Make review respectful
 
-Keep a change as focused and self-contained as the task allows. Explain its purpose, highlight anything surprising, and provide the evidence needed to review it. Split unrelated work when doing so makes the review easier.
+Make the change easy to review:
 
-Treat a request for review as a request for someone's time and judgment, not just a workflow transition. A clear description, a manageable diff, and useful validation are practical ways to repay that attention.
+- Keep it as focused and self-contained as the task allows.
+- Explain its purpose.
+- Highlight anything surprising.
+- Provide the evidence needed to review it.
+- Split unrelated work when that makes the review easier.
+
+A review asks for someone's time and judgment. A clear description, a manageable diff, and useful validation help them spend that attention well.

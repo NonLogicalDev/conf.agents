@@ -2,7 +2,7 @@
 
 Test both format selection and explicit instructions. With the skill available as context, verify that ordinary replies stay plain and consulting the numbering convention does not require lifecycle receipts. When the user, AGENTS.md, or other applicable instructions request the skill or a format, verify compliance for the stated scope and duration. A standing instruction must persist across replies; a request for one report must not become a standing instruction. The format checks below apply when that format is chosen or required.
 
-Run each scenario with a fresh subagent that has an empty context window when the available tools permit. Tell the subagent to use `$Agent_StructuredOutput` and give it the scenario prompt, but not the expectations.
+Run each scenario with a fresh subagent that has an empty context window when the available tools permit. Tell the subagent to use [$@:Agent_StructuredOutput](skill://@:Agent_StructuredOutput) and give it the scenario prompt, but not the expectations.
 
 Do not let tests change files or outside systems. Capture the raw response and compare it with the expectations afterward. A scenario passes only when every expectation holds and no contrary behavior appears.
 
@@ -12,7 +12,9 @@ For parallel assignments, verify that every running task is `in_progress`, visib
 
 For behavior repairs, run the current guidance first, then rerun the same scenario after the edit. Also run the pressure scenario and nearby valid cases.
 
-Verify that private task-chat shorthand stays private: public or team-facing Slack drafts, tracker text, pull request prose, and shared documents use descriptive names, canonical identifiers, and direct links instead, even when the draft is prepared inside private task chat and source notes contain private labels. Verify that ordinary answers, lone links, status, and results stay in normal chat without invented shorthand; a question widget appears only for an actual question that needs user input.
+Verify that private shorthand stays out of public or team-facing drafts and messages unless the user explicitly asks to preserve it there. Test both labels supplied merely as context and an explicit request to include them in a public message; retain canonical identifiers and direct links in either case. In private replies, apply the current user communication reference rules even for a single link. Test label reuse after a title change, distinct labels for distinct items, and preservation in a handoff. A question widget appears only for an actual question that needs user input.
+
+Provide the current **User communication references** instructions when testing references. Check each progress update, decision request, and final answer separately: first mentions must identify the subject and use a direct link when available; tracked work also needs its identifier and title or description. Check every shorthand occurrence for the full name or description immediately after it, including repeats, table cells, link text, and rich previews. Test brief follow-ups after an earlier linked message, missing links, and uncertain identities. Label reuse alone does not establish that the reader can identify and locate the subject.
 
 Verify that ordinary private Codex messages, agent-to-agent messages, and task-to-task coordination do not receive the public `uoleg-codex` signature. A copyable external or team-facing draft still follows its destination's required signature contract even when prepared inside Codex.
 

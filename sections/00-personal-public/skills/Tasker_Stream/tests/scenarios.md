@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Tasker_Stream`. A project owner needs to update an importer, improve its documentation, and add independent tests. Three subagents are available under the verified paths `/root/importer`, `/root/documentation`, and `/root/tests`. Explain how you would assign the work, display their concurrent progress, and maintain the plan. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A project owner needs to update an importer, improve its documentation, and add independent tests. Three subagents are available under the verified paths `/root/importer`, `/root/documentation`, and `/root/tests`. Explain how you would assign the work, display their concurrent progress, and maintain the plan. Do not modify files.
 
 ### Expectations
 
@@ -44,7 +44,7 @@ A fourth worker is running, but its canonical path cannot be verified.
 
 ### Prompt
 
-Use `$Tasker_Stream`. A project has no existing owner home. Explain the public directory layout for its owner, one active task, a design note, a handoff, and repeated friction with a tool. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A project has no existing owner home. Explain the public directory layout for its owner, one active task, a design note, a handoff, and repeated friction with a tool. Do not modify files.
 
 ### Expectations
 
@@ -65,7 +65,7 @@ An existing project already has `_index_.md` and useful older plans.
 
 ### Prompt
 
-Use `$Tasker_Stream`. An active group has one plan, one completed worker, and an integration check that has not run. Describe the owner update. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An active group has one plan, one completed worker, and an integration check that has not run. Describe the owner update. Do not modify files.
 
 ### Expectations
 
@@ -84,7 +84,7 @@ A reviewer asks the owner to mark the group complete because the worker reported
 
 ### Prompt
 
-Use `$Tasker_Stream`. Two workers are updating different parts of a project. The user changes the importer requirements but leaves the documentation work unchanged. Explain the next owner actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). Two workers are updating different parts of a project. The user changes the importer requirements but leaves the documentation work unchanged. Explain the next owner actions. Do not modify files.
 
 ### Expectations
 
@@ -99,7 +99,7 @@ Use `$Tasker_Stream`. Two workers are updating different parts of a project. The
 
 ### Prompt
 
-Use `$Tasker_Stream`. A project's `AGENTS.md` establishes workstream names such as `feature-01-import`, `research-02-parser`, and `docs-03-guide`. Explain how you would organize the existing project without changing files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A project's `AGENTS.md` establishes workstream names such as `feature-01-import`, `research-02-parser`, and `docs-03-guide`. Explain how you would organize the existing project without changing files.
 
 ### Expectations
 
@@ -138,7 +138,7 @@ No user instruction, `AGENTS.md`, or existing project establishes a naming conve
 
 ### Prompt
 
-Use `$Tasker_Stream`. An owner resumes after a handoff. A saved dashboard says one branch is ready, but the current plan records an unfinished check and the repository has moved forward. Explain how the owner should restart. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An owner resumes after a handoff. A saved dashboard says one branch is ready, but the current plan records an unfinished check and the repository has moved forward. Explain how the owner should restart. Do not modify files.
 
 ### Expectations
 
@@ -152,7 +152,7 @@ Use `$Tasker_Stream`. An owner resumes after a handoff. A saved dashboard says o
 
 ### Prompt
 
-Use `$Tasker_Stream`. A reviewer points out that several changed comments use vague labels and claim more than their tests prove. The same writing issue appeared earlier in the project. Explain the owner response. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A reviewer points out that several changed comments use vague labels and claim more than their tests prove. The same writing issue appeared earlier in the project. Explain the owner response. Do not modify files.
 
 ### Expectations
 
@@ -165,7 +165,7 @@ Use `$Tasker_Stream`. A reviewer points out that several changed comments use va
 
 ### Prompt
 
-Use `$Tasker_Stream`. An owner repeatedly loses track of worker assignments because its own guidance does not say where to record them. The user has asked the owner to finish the project autonomously, and another thread should be able to reproduce its intended behavior by reading the owner's project instructions. Explain the next action. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An owner repeatedly loses track of worker assignments because its own guidance does not say where to record them. The user has asked the owner to finish the project autonomously, and another thread should be able to reproduce its intended behavior by reading the owner's project instructions. Explain the next action. Do not modify files.
 
 ### Expectations
 
@@ -194,7 +194,7 @@ A reviewer proposes removing an approval requirement, publishing the revised ski
 
 ### Prompt
 
-Use `$Tasker_Stream`. A project helper reports success while leaving its output unchanged, a required command is missing from the environment again, and a planning skill causes workers to create duplicate owner plans. Explain how the owner should record and address these recurring problems. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A project helper reports success while leaving its output unchanged, a required command is missing from the environment again, and a planning skill causes workers to create duplicate owner plans. Explain how the owner should record and address these recurring problems. Do not modify files.
 
 ### Expectations
 
@@ -210,7 +210,7 @@ Use `$Tasker_Stream`. A project helper reports success while leaving its output 
 
 ### Prompt
 
-Use `$Tasker_Stream`. The user asks for one small, direct change that the current thread can complete and check without a separate owner record, saved plan, delegation, or reusable support. Describe the simplest approach. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). The user asks for one small, direct change that the current thread can complete and check without a separate owner record, saved plan, delegation, or reusable support. Describe the simplest approach. Do not modify files.
 
 ### Expectations
 
@@ -229,7 +229,7 @@ A small project already has a useful owner, active plan, and independent helper.
 
 ### Prompt
 
-Use `$Tasker_Stream`. An existing project OWNERS.md lists another active thread but not your verified current thread. The project has an active group and a pending release. Explain your next action. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An existing project OWNERS.md lists another active thread but not your verified current thread. The project has an active group and a pending release. Explain your next action. Do not modify files.
 
 ### Expectations
 
@@ -255,7 +255,7 @@ OWNERS.md already records the verified current thread as active, and README cont
 
 ### Prompt
 
-Use `$Tasker_Stream`. After a difficult investigation, one workstream verifies why a job runner skips retries for a particular failure. Another workstream will soon change the same runner, and `_owner/memory/` contains an outdated note about its retry behavior. Explain the owner's next actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). After a difficult investigation, one workstream verifies why a job runner skips retries for a particular failure. Another workstream will soon change the same runner, and `_owner/memory/` contains an outdated note about its retry behavior. Explain the owner's next actions. Do not modify files.
 
 ### Expectations
 
@@ -283,7 +283,7 @@ The finished work produced no reusable fact or learning beyond its current plan.
 
 ### Prompt
 
-Use `$Tasker_Stream`. An owner repeatedly reconstructs the same query, discovers a useful project fact, and finds that a required command is missing on new machines. The user updates the owner's instructions, and the new work makes an earlier owner convention unhelpful. Explain the owner's next actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An owner repeatedly reconstructs the same query, discovers a useful project fact, and finds that a required command is missing on new machines. The user updates the owner's instructions, and the new work makes an earlier owner convention unhelpful. Explain the owner's next actions. Do not modify files.
 
 ### Expectations
 
@@ -311,7 +311,7 @@ The task needs one ordinary command, produces no reusable observation, and follo
 
 ### Prompt
 
-Use `$Tasker_Stream`. An owner needs a short document that other agents can pass to `/goal`. The project has an overall outcome, current priorities, several workstreams, active workers, changing test results, and unresolved blockers. An existing goal document uses `# Goals`, a dated goal heading, and `**Outcome**` and `**Workstreams**` entries. Explain which file should hold the goal, how it should index the actual plans, and where changing state belongs. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An owner needs a short document that other agents can pass to `/goal`. The project has an overall outcome, current priorities, several workstreams, active workers, changing test results, and unresolved blockers. An existing goal document uses `# Goals`, a dated goal heading, and `**Outcome**` and `**Workstreams**` entries. Explain which file should hold the goal, how it should index the actual plans, and where changing state belongs. Do not modify files.
 
 ### Expectations
 
@@ -339,7 +339,7 @@ The existing README or plan already explains a simple goal, and a separate goal 
 
 ### Prompt
 
-Use `$Tasker_Stream`. A feature will take several months and multiple iterations across design, implementation, and delivery. An established owner already has useful plans, a goal index, project guidance, reusable findings, and a helper for repeated checks. Explain how the owner should continue the work. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A feature will take several months and multiple iterations across design, implementation, and delivery. An established owner already has useful plans, a goal index, project guidance, reusable findings, and a helper for repeated checks. Explain how the owner should continue the work. Do not modify files.
 
 ### Expectations
 
@@ -356,7 +356,7 @@ Use `$Tasker_Stream`. A feature will take several months and multiple iterations
 
 ### Prompt
 
-Use `$Tasker_Stream`. An established owner has an active plan for an earlier import design. The user changes the accepted approach and asks for updates to the importer, its design document, and a generated artifact. A worker wants to change the files before updating the plan. Explain the owner's next actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An established owner has an active plan for an earlier import design. The user changes the accepted approach and asks for updates to the importer, its design document, and a generated artifact. A worker wants to change the files before updating the plan. Explain the owner's next actions. Do not modify files.
 
 ### Expectations
 
@@ -383,7 +383,7 @@ A simple standalone fix has no active plan and does not need durable coordinatio
 
 ### Prompt
 
-Use `$Tasker_Stream`. An active workstream has `active/plan-03 Build a custom importer.md` with useful decisions, research, and work history. The user abandons that approach in favor of a library whose integration, scope, and checks would require rewriting almost the entire plan. Explain the owner's next actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An active workstream has `active/plan-03 Build a custom importer.md` with useful decisions, research, and work history. The user abandons that approach in favor of a library whose integration, scope, and checks would require rewriting almost the entire plan. Explain the owner's next actions. Do not modify files.
 
 ### Expectations
 
@@ -410,7 +410,7 @@ The user adjusts one requirement while the current plan's purpose, approach, and
 
 ### Prompt
 
-Use `$Tasker_Stream`. An established project has a root `AGENTS.md` with useful project rules and an older `OWNER_PROMPT.md` with its mission, workstreams, delegation practices, and important user decisions. Root OWNERS.md records the current allowed owners. The user changes the project's priorities while two workers are active. Explain how the owner should preserve and apply its instructions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An established project has a root `AGENTS.md` with useful project rules and an older `OWNER_PROMPT.md` with its mission, workstreams, delegation practices, and important user decisions. Root OWNERS.md records the current allowed owners. The user changes the project's priorities while two workers are active. Explain how the owner should preserve and apply its instructions. Do not modify files.
 
 ### Expectations
 
@@ -442,7 +442,7 @@ A simple task has no plan root, standing owner instructions, or need for delegat
 
 ### Prompt
 
-Use `$Tasker_Stream`. A user asks a thread to investigate a recurring production issue, compare several possible causes, and delegate independent checks. No active plan is known. Explain what must happen before the investigation or delegation begins. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A user asks a thread to investigate a recurring production issue, compare several possible causes, and delegate independent checks. No active plan is known. Explain what must happen before the investigation or delegation begins. Do not modify files.
 
 ### Expectations
 
@@ -469,7 +469,7 @@ The user asks for one small, direct change that can be completed and checked imm
 
 ### Prompt
 
-Use `$Tasker_Stream`. A new agent inherits only an established owner directory after a machine replacement removed two active worktrees under disposable storage. The persistent source repository still has their branches and commits. Explain how the owner records should make both workstreams recoverable. Do not modify files or run mutating commands.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A new agent inherits only an established owner directory after a machine replacement removed two active worktrees under disposable storage. The persistent source repository still has their branches and commits. Explain how the owner records should make both workstreams recoverable. Do not modify files or run mutating commands.
 
 ### Expectations
 
@@ -496,7 +496,7 @@ The user asks for one small standalone change with no existing owner, worktree, 
 
 ### Prompt
 
-Use `$Tasker_Stream`. An established owner has a root README, owner instructions, active plans, worktree inventory, and several durable findings under `_owner/memory/`. A fresh thread must resume the project, but root `MEMORY.md` is missing. Explain what it must do before substantive work continues and how the new file should be maintained. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An established owner has a root README, owner instructions, active plans, worktree inventory, and several durable findings under `_owner/memory/`. A fresh thread must resume the project, but root `MEMORY.md` is missing. Explain what it must do before substantive work continues and how the new file should be maintained. Do not modify files.
 
 ### Expectations
 
@@ -525,7 +525,7 @@ A simple direct task has no owner plan root and no need for durable coordination
 
 ### Prompt
 
-Use `$Tasker_Stream`. An established owner's root `MEMORY.md` links to an approved import schema, a useful sample artifact, a project validation helper, and a prior user decision rejecting a generic shortcut. The recorded owner matches the current thread, and the user asks for a related import change. Two independent workstreams can proceed with available workers. Explain the owner's next actions. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). An established owner's root `MEMORY.md` links to an approved import schema, a useful sample artifact, a project validation helper, and a prior user decision rejecting a generic shortcut. The recorded owner matches the current thread, and the user asks for a related import change. Two independent workstreams can proceed with available workers. Explain the owner's next actions. Do not modify files.
 
 ### Expectations
 
@@ -556,7 +556,7 @@ Current source proves the saved artifact no longer fits the requested change.
 
 ### Prompt
 
-Use `$Tasker_Stream`. You are the verified owner of a long-running project. Its plan root has README.md, MEMORY.md, and delivery themes 001 through 004, but no organizational maintenance record. Some index links are stale and two themes overlap. Explain how you would track and perform this upkeep without disrupting delivery. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). You are the verified owner of a long-running project. Its plan root has README.md, MEMORY.md, and delivery themes 001 through 004, but no organizational maintenance record. Some index links are stale and two themes overlap. Explain how you would track and perform this upkeep without disrupting delivery. Do not modify files.
 
 ### Expectations
 
@@ -578,7 +578,7 @@ Use `$Tasker_Stream`. You are the verified owner of a long-running project. Its 
 
 ### Prompt
 
-Use `$Tasker_Stream`. A project README links to OWNERS.md without declaring owners. OWNERS.md lists A and B as active with operator authorization and C as revoked. You are B and have an assigned owner-level maintenance change. Thread D is an active delegated worker and asks to become an owner by adding itself. Explain what each thread may do, where state belongs, and how you would handle a missing or malformed register. Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). A project README links to OWNERS.md without declaring owners. OWNERS.md lists A and B as active with operator authorization and C as revoked. You are B and have an assigned owner-level maintenance change. Thread D is an active delegated worker and asks to become an owner by adding itself. Explain what each thread may do, where state belongs, and how you would handle a missing or malformed register. Do not modify files.
 
 ### Expectations
 
@@ -593,7 +593,7 @@ Use `$Tasker_Stream`. A project README links to OWNERS.md without declaring owne
 
 ### Prompt
 
-Use `$Tasker_Stream migrate`. The conversation links an older skill generation. You have verified authorization to migrate an existing owner with active workers, legacy plan locations, useful old OWNER_PROMPT.md instructions, no OWNERS.md, and an existing meta-maintenance plan. Explain your migration sequence and completion checks without changing this fixture. Include what happens on a second invocation, a conflicting owner, or no owner structure.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream) migrate. The conversation links an older skill generation. You have verified authorization to migrate an existing owner with active workers, legacy plan locations, useful old OWNER_PROMPT.md instructions, no OWNERS.md, and an existing meta-maintenance plan. Explain your migration sequence and completion checks without changing this fixture. Include what happens on a second invocation, a conflicting owner, or no owner structure.
 
 ### Expectations
 
@@ -609,7 +609,7 @@ Use `$Tasker_Stream migrate`. The conversation links an older skill generation. 
 
 ### Prompt
 
-Use `$Tasker_Stream`. OWNERS.md permits thread B. README still has a legacy owner_thread naming A, and AGENTS.md repeats A as owner. You are B. Explain the authority check and what `$Tasker_Stream migrate` must do. Separately, what if OWNERS.md is missing and README names your current thread? Do not modify files.
+Use [$@:Tasker_Stream](skill://@:Tasker_Stream). OWNERS.md permits thread B. README still has a legacy owner_thread naming A, and AGENTS.md repeats A as owner. You are B. Explain the authority check and what [$@:Tasker_Stream](skill://@:Tasker_Stream) migrate must do. Separately, what if OWNERS.md is missing and README names your current thread? Do not modify files.
 
 ### Expectations
 

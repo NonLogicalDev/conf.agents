@@ -5,18 +5,18 @@ import argparse
 import filecmp
 import hashlib
 import json
-import runpy
-import subprocess
 import os
 import re
 import shutil
 import stat
+import string
 import sys
 import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
+from urllib.parse import unquote
 
 LAYER_PATTERN = re.compile(r"^\d+-[A-Za-z0-9][A-Za-z0-9._-]*$")
 GENERATION_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2})__(\d{2,})$")
@@ -45,6 +45,7 @@ class RenderPlan:
     fragment_count: int
     directories: set[Path]
     files: dict[Path, Path]
+    contents: dict[Path, bytes]
 
 
 @dataclass(frozen=True)
@@ -219,11 +220,27 @@ def discover_resources(
     return desired, overrides
 
 
+def discover_rules(layers: list[Path]) -> dict[str, Path]:
+    """Select flat Codex rule files using the usual section precedence."""
+    desired: dict[str, Path] = {}
+    for layer in layers:
+        directory = layer / "rules"
+        if directory.is_symlink():
+            raise ReconcileError(f"symlinked rule directories are not supported: {directory}")
+        if not directory.exists():
+            continue
+        if not directory.is_dir():
+            raise ReconcileError(f"rule root is not a regular directory: {directory}")
+        for entry in sorted(directory.iterdir()):
+            if entry.is_symlink() or not entry.is_file() or entry.suffix != ".rules":
+                raise ReconcileError(f"rules must be regular .rules files: {entry}")
+            desired[entry.name] = entry
+    return desired
+
+
 def render_agents(
     config_dir: Path,
     layers: list[Path],
-    resources_dir: Path,
-    skills_dir: Path,
 ) -> tuple[str, int]:
     sections = [MANAGED_MARKER, "# Global agent instructions"]
     fragments: dict[str, Path] = {}
@@ -250,14 +267,142 @@ def render_agents(
             contents = fragment.read_text(encoding="utf-8").strip()
         except (OSError, UnicodeError) as error:
             raise ReconcileError(f"cannot read config fragment: {fragment}: {error}") from error
-        contents = contents.replace(RESOURCES_PLACEHOLDER, os.fspath(resources_dir))
-        contents = contents.replace(SKILLS_PLACEHOLDER, os.fspath(skills_dir))
         sections.append(f"<!-- source: {fragment.relative_to(config_dir).as_posix()} -->")
         if contents:
             sections.append(contents)
         fragment_count += 1
 
     return "\n\n".join(sections) + "\n", fragment_count
+
+
+def markdown_destinations(text: str) -> list[str]:
+    """Read inline and reference-link paths, including Markdown escapes."""
+    destinations = []
+    for match in re.finditer(r"\]\(\s*|(?m:^\s*\[[^]\n]+\]:\s*)", text):
+        position = match.end()
+        angled = text[position:position + 1] == "<"
+        position += angled
+        depth = 0
+        characters = []
+        while position < len(text):
+            character = text[position]
+            position += 1
+            if character == "\\" and position < len(text) and text[position] in string.punctuation:
+                characters.append(text[position])
+                position += 1
+                continue
+            if character in "\r\n" or (angled and character == ">"):
+                break
+            if not angled:
+                if character.isspace() or (character == ")" and depth == 0):
+                    break
+                if character == "(":
+                    depth += 1
+                elif character == ")":
+                    depth -= 1
+            characters.append(character)
+        destinations.append("".join(characters))
+    return destinations
+
+
+def bundle_skill_resources(
+    skills: dict[str, Path],
+    resources: dict[Path, Path],
+    agents_template: str,
+    directories: set[Path],
+    files: dict[Path, Path],
+) -> dict[Path, bytes]:
+    """Give each skill its own resource copies, preserving the source tree.
+
+    Expand placeholders relative to the file containing them. Follow Markdown
+    links to other known resources so copied guides retain their dependencies.
+    Links outside the resource catalog are left alone, including links in
+    verbatim snapshots of external documents.
+    """
+    targets: dict[str, set[Path]] = {"": set(resources)}
+    for resource in resources:
+        targets[resource.as_posix()] = {resource}
+        for parent in resource.parents:
+            if parent != Path("."):
+                targets.setdefault(parent.as_posix(), set()).add(resource)
+    paths = sorted(targets, key=len, reverse=True)
+    file_paths = {path.as_posix() for path in resources}
+    contents: dict[Path, bytes] = {}
+
+    for name in skills:
+        skill_root = Path("skills") / name
+        resource_root = skill_root / "resources"
+        pending = [(path, None) for path in files if path.is_relative_to(skill_root)]
+        copied: set[Path] = set()
+        while pending:
+            relative, resource = pending.pop()
+            source = files[relative]
+            original = source.read_bytes()
+            if b"\0" in original and relative != GUIDANCE_SKILL:
+                continue
+            try:
+                text = original.decode("utf-8")
+            except UnicodeDecodeError as error:
+                if relative == GUIDANCE_SKILL:
+                    raise ReconcileError(f"cannot read guidance template: {source}: {error}") from error
+                continue
+            if relative == GUIDANCE_SKILL:
+                if text.count(AGENTS_PLACEHOLDER) != 1:
+                    raise ReconcileError("Agent_Guidance must contain one {{%_agents_%}} placeholder")
+                text = text.replace(AGENTS_PLACEHOLDER, agents_template.rstrip("\n"))
+
+            needed: set[Path] = set()
+            for match in re.finditer(re.escape(RESOURCES_PLACEHOLDER), text):
+                suffix = re.sub(r"\\([" + re.escape(string.punctuation) + r"])", r"\1", text[match.end():])
+                suffix = unquote(suffix)
+                if not suffix.startswith("/"):
+                    needed.update(resources)
+                    continue
+                suffix = suffix[1:]
+                for path in paths:
+                    if not suffix.startswith(path):
+                        continue
+                    rest = suffix[len(path):]
+                    if path not in file_paths:
+                        rest = rest.removeprefix("/")
+                    if not rest or re.match(r"[\s`\"'>)\]}?#]|[.,;:!](?:\s|$)", rest):
+                        needed.update(targets[path])
+                        break
+                else:
+                    raise ReconcileError(f"Unknown resource reference in {source}: {suffix.splitlines()[0]}")
+
+            if resource is not None:
+                for link in markdown_destinations(text):
+                    # Only catalog-relative paths can add copies. Do not parse
+                    # external URLs; even a malformed one is unrelated input.
+                    if re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", link) or link.startswith("/"):
+                        continue
+                    path = link.split("#", 1)[0].split("?", 1)[0]
+                    if not path:
+                        continue
+                    target = os.path.normpath(resource.parent / unquote(path))
+                    needed.update(targets.get(target, ()))
+
+            if RESOURCES_PLACEHOLDER in text:
+                if resource_root in files:
+                    raise ReconcileError(f"Skill resource directory conflicts with a file: {files[resource_root]}")
+                directories.add(resource_root)
+                local_root = Path(os.path.relpath(resource_root, relative.parent)).as_posix()
+                text = text.replace(RESOURCES_PLACEHOLDER, local_root)
+            if text.encode("utf-8") != original:
+                contents[relative] = text.encode("utf-8")
+
+            for target in sorted(needed - copied):
+                destination = resource_root / target
+                if destination in files or destination in directories or any(parent in files for parent in destination.parents):
+                    raise ReconcileError(f"Bundled resource conflicts with skill contents: {destination}")
+                files[destination] = resources[target]
+                for parent in destination.parents:
+                    if parent != Path("."):
+                        directories.add(parent)
+                copied.add(target)
+                pending.append((destination, target))
+    return contents
 
 
 def effective_codex_dir(codex_dir: Path | None) -> Path:
@@ -272,14 +417,12 @@ def build_render_plan(config_dir: Path, codex_dir: Path | None = None) -> Render
     skills, skill_overrides = discover_skills(layers)
     resources, resource_overrides = discover_resources(layers)
     codex_dir = effective_codex_dir(codex_dir)
-    agents, fragment_count = render_agents(
-        config_dir,
-        layers,
-        codex_dir / "resources",
-        codex_dir / "skills",
-    )
-    directories = {Path("skills"), Path("resources")}
-    files: dict[Path, Path] = {}
+    agents_template, fragment_count = render_agents(config_dir, layers)
+    agents_template = agents_template.replace(SKILLS_PLACEHOLDER, os.fspath(codex_dir / "skills"))
+    agents = agents_template.replace(RESOURCES_PLACEHOLDER, os.fspath(codex_dir / "resources"))
+    directories = {Path("skills"), Path("resources"), Path("rules")}
+    files: dict[Path, Path] = {Path("rules") / name: source
+                                   for name, source in discover_rules(layers).items()}
 
     for name, source in sorted(skills.items()):
         skill_destination = Path("skills") / name
@@ -305,10 +448,7 @@ def build_render_plan(config_dir: Path, codex_dir: Path | None = None) -> Render
                 break
             directories.add(parent)
 
-    if GUIDANCE_SKILL in files:
-        template = files[GUIDANCE_SKILL].read_text(encoding="utf-8")
-        if template.count(AGENTS_PLACEHOLDER) != 1:
-            raise ReconcileError("Agent_Guidance must contain one {{%_agents_%}} placeholder")
+    contents = bundle_skill_resources(skills, resources, agents_template, directories, files)
 
     return RenderPlan(
         layers=layers,
@@ -320,6 +460,7 @@ def build_render_plan(config_dir: Path, codex_dir: Path | None = None) -> Render
         fragment_count=fragment_count,
         directories=directories,
         files=files,
+        contents=contents,
     )
 
 
@@ -382,15 +523,10 @@ def discover_generations(render_dir: Path) -> list[Generation]:
     return sorted(generations.values(), key=lambda generation: generation.ordinal)
 
 
-def guidance_contents(plan: RenderPlan) -> str:
-    template = plan.files[GUIDANCE_SKILL].read_text(encoding="utf-8")
-    return template.replace(AGENTS_PLACEHOLDER, plan.agents.rstrip("\n"))
-
-
 def copy_plan_file(plan: RenderPlan, relative: Path, destination: Path) -> None:
     source = plan.files[relative]
-    if relative == GUIDANCE_SKILL:
-        destination.write_text(guidance_contents(plan), encoding="utf-8", newline="\n")
+    if relative in plan.contents:
+        destination.write_bytes(plan.contents[relative])
         shutil.copystat(source, destination)
     else:
         shutil.copy2(source, destination, follow_symlinks=False)
@@ -430,8 +566,8 @@ def rendered_matches(render_dir: Path, plan: RenderPlan) -> bool:
         expected_mode = stat.S_IMODE(source.stat().st_mode) & ~0o222
         if stat.S_IMODE(destination.stat().st_mode) != expected_mode:
             return False
-        if relative == GUIDANCE_SKILL:
-            if destination.read_bytes() != guidance_contents(plan).encode("utf-8"):
+        if relative in plan.contents:
+            if destination.read_bytes() != plan.contents[relative]:
                 return False
         elif not filecmp.cmp(source, destination, shallow=False):
             return False
@@ -621,7 +757,7 @@ def prune_generations(render_dir: Path, codex_dir: Path) -> None:
 
         removable_names = {generation.path.name for generation in removable}
         links: list[tuple[Path, str]] = [(codex_dir / "AGENTS.md", "AGENTS.md")]
-        for component in ("skills", "resources"):
+        for component in ("skills", "resources", "rules"):
             directory = codex_dir / component
             if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
                 raise ReconcileError(f"{component} target is not a regular directory: {directory}")
@@ -754,6 +890,7 @@ def sync_rendered(
     skill_plan = plan_component_links(codex_dir, generation, render_dir,
                                       component="skills", populate=sync_skills)
     resource_plan = plan_component_links(codex_dir, generation, render_dir, component="resources")
+    rule_plan = plan_component_links(codex_dir, generation, render_dir, component="rules")
 
     codex_dir.mkdir(parents=True, exist_ok=True)
     if agents_plan.remove_existing:
@@ -766,6 +903,7 @@ def sync_rendered(
 
     apply_component_links(skill_plan)
     apply_component_links(resource_plan)
+    apply_component_links(rule_plan)
     print(
         f"synced agent-config: layers={len(plan.layers)} "
         f"fragments={plan.fragment_count} skills={len(plan.skills)} "
@@ -775,14 +913,16 @@ def sync_rendered(
         f"skills_unchanged={skill_plan.unchanged} "
         f"resources_linked={len(resource_plan.links)} "
         f"resources_unchanged={resource_plan.unchanged} "
+        f"rules_linked={len(rule_plan.links)} rules_unchanged={rule_plan.unchanged} "
         f"skill_destination={'none' if instructions_only else 'skills' if sync_skills else 'marketplace'} "
         f"destination={codex_dir}"
     )
 
 
 def run(operation: str, config_dir: Path, render_dir: Path, codex_dir: Path | None,
-        *, home: Path | None = None, plugin_creator: Path | None = None,
-        skill_marketplace: bool = False, instructions_only: bool = False) -> int:
+        *, home: Path | None = None,
+        skill_marketplace: bool = False, instructions_only: bool = False,
+        rules_only: bool = False) -> int:
     config_dir = absolute_path(config_dir)
     render_dir = absolute_path(render_dir)
     if skill_marketplace and operation != "sync":
@@ -791,6 +931,9 @@ def run(operation: str, config_dir: Path, render_dir: Path, codex_dir: Path | No
         raise ReconcileError("--instructions-only requires sync")
     if skill_marketplace and instructions_only:
         raise ReconcileError("--skill-marketplace and --instructions-only are mutually exclusive")
+
+    if rules_only and (operation != "sync" or skill_marketplace or instructions_only):
+        raise ReconcileError("--rules-only requires sync without another sync mode")
 
     if operation == "reset":
         if codex_dir is None:
@@ -823,10 +966,17 @@ def run(operation: str, config_dir: Path, render_dir: Path, codex_dir: Path | No
     if operation == "sync":
         if codex_dir is None:
             raise ReconcileError("sync requires --codex-dir")
+        if rules_only:
+            destination = absolute_path(codex_dir)
+            if destination.is_symlink() or (destination.exists() and not destination.is_dir()):
+                raise ReconcileError(f"Codex destination is not a regular directory: {destination}")
+            rule_plan = plan_component_links(destination, generation, render_dir, component="rules")
+            apply_component_links(rule_plan)
+            print(f"synced rules: linked={len(rule_plan.links)} unchanged={rule_plan.unchanged}")
+            return 0
         if skill_marketplace:
             marketplace_home = home if home is not None else Path.home()
-            creator = plugin_creator if plugin_creator is not None else Path.home() / ".codex/skills/.system/plugin-creator"
-            print(json.dumps(populate_marketplace(plan, marketplace_home, creator), indent=2))
+            print(json.dumps(populate_marketplace(plan, marketplace_home), indent=2))
         sync_rendered(generation, absolute_path(codex_dir), render_dir, plan,
                       sync_skills=not (skill_marketplace or instructions_only),
                       instructions_only=instructions_only)
@@ -852,22 +1002,105 @@ def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n")
 
 
-def populate_marketplace(plan: RenderPlan, home: Path, creator: Path) -> dict:
+def load_marketplace(path: Path) -> dict:
+    """Read the catalog without changing its metadata or unrelated entries."""
+    if not path.exists():
+        return {"name": "personal", "interface": {"displayName": "Personal"}, "plugins": []}
+    catalog = json.loads(path.read_text())
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("name"), str) or not catalog["name"].strip():
+        raise ValueError(f"Marketplace must have a nonempty name: {path}")
+    if not isinstance(catalog.get("plugins"), list):
+        raise ValueError(f"Marketplace plugins must be a list: {path}")
+    if "interface" in catalog:
+        interface = catalog["interface"]
+        if not isinstance(interface, dict) or not isinstance(interface.get("displayName"), str) or not interface["displayName"].strip():
+            raise ValueError(f"Marketplace interface must have a displayName: {path}")
+    names = set()
+    for entry in catalog["plugins"]:
+        if not isinstance(entry, dict) or not isinstance(entry.get("name"), str) or not entry["name"].strip():
+            raise ValueError(f"Marketplace plugin must have a nonempty name: {path}")
+        if entry["name"] in names:
+            raise ValueError(f"Duplicate marketplace plugin: {entry['name']}")
+        names.add(entry["name"])
+        source = entry.get("source")
+        # Codex accepts both local path strings and source objects. Preserve
+        # unrelated entries without resolving their repositories or packages.
+        if isinstance(source, str):
+            source = {"source": "local", "path": source}
+        if not isinstance(source, dict) or source.get("source") not in ("local", "url", "git-subdir", "npm"):
+            raise ValueError(f"Invalid marketplace source: {entry['name']}")
+        kind = source["source"]
+        if kind in ("local", "git-subdir"):
+            relative = source.get("path")
+            if not isinstance(relative, str) or not relative.startswith("./") or ".." in Path(relative).parts:
+                raise ValueError(f"Marketplace source path must stay within its root: {entry['name']}")
+        required = "url" if kind in ("url", "git-subdir") else "package" if kind == "npm" else None
+        if required and (not isinstance(source.get(required), str) or not source[required].strip()):
+            raise ValueError(f"Marketplace source requires {required}: {entry['name']}")
+        # Older catalogs may omit policy. Check supplied values without
+        # adding defaults or changing an unrelated plugin's install policy.
+        if "policy" in entry:
+            policy = entry["policy"]
+            if not isinstance(policy, dict) or policy.get("installation") not in ("AVAILABLE", "INSTALLED_BY_DEFAULT", "NOT_AVAILABLE"):
+                raise ValueError(f"Invalid marketplace installation policy: {entry['name']}")
+            if not isinstance(policy.get("authentication"), str) or not policy["authentication"].strip():
+                raise ValueError(f"Invalid marketplace authentication policy: {entry['name']}")
+        if "category" in entry and (not isinstance(entry["category"], str) or not entry["category"].strip()):
+            raise ValueError(f"Invalid marketplace category: {entry['name']}")
+    return catalog
+
+
+def validate_packaged_skills(stage: Path, names: list[str]) -> None:
+    """Validate the skill format we package before replacing a working plugin.
+
+    Keep YAML optional for rendering and instructions-only sync on devboxes.
+    Marketplace builds provide PyYAML through the agents-sync recipe.
+    """
+    try:
+        import yaml
+    except ImportError as error:
+        raise ValueError("Marketplace builds require PyYAML; run ajust agents-sync") from error
+
+    allowed = {"name", "description", "license", "allowed-tools", "metadata"}
+    for name in names:
+        path = stage / "skills" / name / "SKILL.md"
+        read_skill_name(path)
+        lines = path.read_text().splitlines()
+        end = next(i for i in range(1, len(lines)) if lines[i].strip() in {"---", "..."})
+        try:
+            metadata = yaml.safe_load("\n".join(lines[1:end]))
+        except yaml.YAMLError as error:
+            raise ValueError(f"Invalid skill YAML: {path}: {error}") from error
+        if not isinstance(metadata, dict):
+            raise ValueError(f"Skill frontmatter must be a mapping: {path}")
+        unexpected = set(metadata) - allowed
+        if unexpected:
+            raise ValueError(f"Unsupported skill frontmatter keys in {path}: {', '.join(sorted(map(str, unexpected)))}")
+        if metadata.get("name") != name or len(name) > 64 or not re.fullmatch(r"[A-Za-z0-9_-]+", name):
+            raise ValueError(f"Invalid packaged skill name: {path}")
+        description = metadata.get("description")
+        if not isinstance(description, str) or not description.strip() or len(description) > 1024:
+            raise ValueError(f"Skill description must be a nonempty string of at most 1024 characters: {path}")
+
+
+def populate_marketplace(plan: RenderPlan, home: Path) -> dict:
     if not plan.skills:
         raise ValueError("Refusing to publish an empty skill collection")
-    helper = runpy.run_path(str(creator / "scripts/create_basic_plugin.py"))
     marketplace = home / ".agents/plugins/marketplace.json"
     destination = home / "plugins" / PLUGIN
     for path in [marketplace, *marketplace.parents, destination, *destination.parents]:
         if path.is_symlink():
             raise ValueError(f"Refusing a symlinked destination: {path}")
     # Validate before touching the installed catalog or generated plugin.
-    catalog = helper["load_validated_marketplace"](marketplace, None, PLUGIN, True)
+    catalog = load_marketplace(marketplace)
     matches = [p for p in catalog["plugins"] if isinstance(p, dict) and p.get("name") == PLUGIN]
-    if len(matches) > 1:
-        raise ValueError("Duplicate skillset-uoleg marketplace entries")
-    entry = helper["build_marketplace_entry"](PLUGIN, "AVAILABLE", "ON_INSTALL", "Productivity")
-    if matches and matches[0].get("source") != entry["source"]:
+    entry = {
+        "name": PLUGIN,
+        "source": {"source": "local", "path": f"./plugins/{PLUGIN}"},
+        "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+        "category": "Productivity",
+    }
+    if matches and matches[0]["source"] not in (entry["source"], entry["source"]["path"]):
         raise ValueError("Existing skillset-uoleg entry points elsewhere")
     version = "0.1.0"
     if destination.exists():
@@ -890,23 +1123,31 @@ def populate_marketplace(plan: RenderPlan, home: Path, creator: Path) -> dict:
             target = stage / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             copy_plan_file(plan, relative, target)
-        manifest = helper["build_plugin_json"](PLUGIN, with_mcp=False, with_apps=False)
-        manifest.update(version=version, description="Oleg's complete managed skill collection", author={"name": "uoleg"})
-        manifest["interface"].update(displayName="Skillset(uoleg)", shortDescription="Oleg's managed skills", longDescription="The effective personal and private skills from agent-config, with shared reference files.", developerName="uoleg", defaultPrompt="Use my managed skill collection.")
+        # This renderer owns a skill-only plugin, not a general plugin scaffold.
+        manifest = {
+            "name": PLUGIN,
+            "version": version,
+            "description": "Oleg's complete managed skill collection",
+            "author": {"name": "uoleg"},
+            "skills": "./skills/",
+            "interface": {
+                "displayName": "Skillset(uoleg)",
+                "shortDescription": "Oleg's managed skills",
+                "longDescription": "The effective personal and private skills from agent-config, with shared reference files.",
+                "developerName": "uoleg",
+                "category": "Productivity",
+                "capabilities": [],
+                "defaultPrompt": "Use my managed skill collection.",
+            },
+        }
         write_json(stage / ".codex-plugin/plugin.json", manifest)
-        validation = subprocess.run([sys.executable, str(creator / "scripts/validate_plugin.py"), str(stage)], capture_output=True, text=True)
-        if validation.returncode:
-            raise ValueError(validation.stdout + validation.stderr)
+        validate_packaged_skills(stage, list(plan.skills))
         write_json(stage / MARKER, {"files": inventory(stage)})
-        # Use the official helper to construct a candidate catalog, preserving
-        # all other entries. Keep custom policy on our existing entry as well.
+        # Preserve the catalog and custom policy on an existing managed entry.
+        if not matches:
+            catalog["plugins"].append(entry)
         candidate = Path(temp) / "marketplace.json"
         write_json(candidate, catalog)
-        helper["update_marketplace_json"](candidate, None, PLUGIN, "AVAILABLE", "ON_INSTALL", "Productivity", True)
-        if matches:
-            updated = json.loads(candidate.read_text())
-            updated["plugins"] = [matches[0] if p.get("name") == PLUGIN else p for p in updated["plugins"]]
-            write_json(candidate, updated)
         marketplace.parent.mkdir(parents=True, exist_ok=True)
         # Stage the catalog on its own filesystem for atomic replacement.
         fd, catalog_temp = tempfile.mkstemp(prefix=".skillset-", dir=marketplace.parent)
@@ -938,9 +1179,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--render-dir", type=Path, required=True)
     parser.add_argument("--codex-dir", type=Path)
     parser.add_argument("--home", type=Path, default=Path.home(), help="Marketplace destination home")
-    parser.add_argument("--plugin-creator", type=Path, default=Path.home() / ".codex/skills/.system/plugin-creator")
     parser.add_argument("--skill-marketplace", action="store_true", help="Populate the personal skill marketplace instead of the skills directory during sync")
     parser.add_argument("--instructions-only", action="store_true", help="Sync instructions and resources, remove managed skill links, and leave marketplaces untouched")
+    parser.add_argument("--rules-only", action="store_true", help="Sync only managed Codex rule links")
     arguments = parser.parse_args(argv)
 
     try:
@@ -950,9 +1191,9 @@ def main(argv: list[str] | None = None) -> int:
             arguments.render_dir,
             arguments.codex_dir,
             home=arguments.home.absolute(),
-            plugin_creator=arguments.plugin_creator.resolve(),
             skill_marketplace=arguments.skill_marketplace,
             instructions_only=arguments.instructions_only,
+            rules_only=arguments.rules_only,
         )
     except (OSError, ReconcileError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)

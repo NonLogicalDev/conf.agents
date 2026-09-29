@@ -56,7 +56,7 @@ A changed file is an output, not a completed result. Include it in recent work o
 
 Say when a goal, owner, required decision, or blocker is unknown. Do not infer one from a workstream name, sent request, or document title.
 
-Preserve complete existing `WS[xx.yy]` workstream markers and sort by current priority without changing those markers or inventing a new workstream. See `$Agent_StructuredOutput` for that numbering convention. This reference concerns labels; use its message formats when requested by applicable instructions or when they help explain the report.
+Preserve complete existing `WS[xx.yy]` workstream markers and sort by current priority without changing those markers or inventing a new workstream. See [$@:Agent_StructuredOutput](skill://@:Agent_StructuredOutput) for that numbering convention. This reference concerns labels; use its message formats when requested by applicable instructions or when they help explain the report.
 
 ## Follow The Requested Format
 
@@ -71,6 +71,8 @@ Use exact verified names, links, and times in any format. Write `Last updated un
 ## Check Before Sending
 
 - Answer the requested question in the requested format.
+- Follow the applicable **User communication references** rules at each subject's first mention, including in the opening summary and operator attention. A later output list does not replace the subject's identifier, description, and available link beside the claim.
+- Follow every artifact shorthand and workstream marker with its full name or description, including repeat mentions in summaries, tables, and output lists. Keep the canonical identifier and title or description with tracked work. Shorthands are user reference aids, never substitutes for the subject's name.
 - List an item needing the user's attention only when the user actually needs to act.
 - Use `- None.` when no needed user action is known.
 - Give each output its actual owner and verified time.

@@ -28,18 +28,18 @@ Use the appropriate skill for public messages, saved plans, delegation, mission 
 - Keep confidential material and private reasoning out of responses. Distinguish a verified fact, a current assumption, and an unfinished action.
 - Read [references/operator-writing.md](references/operator-writing.md) only when the answer requires complex sections, annotated source lists, reusable writing blocks, or a separate final receipt and summary.
 
-## Keep Internal Artifact Labels Private
+## Identify Subjects And Keep Labels Private
 
-- Internal artifact shorthand may remain in private task state when it is already established, but do not invent or surface it by default in operator replies. Use the real PR number, link, branch name, commit, ticket, path, or title.
-- Use an internal shorthand in chat only when the operator explicitly asks for a private-only mapping. Keep the canonical identifier or path visible and reuse one label for one artifact within that private mapping.
-- Do not put internal artifact or workstream shorthand such as `P1`, `B3`, `A4`, `T3`, or `WS[03.02]` into public or team-facing material. Slack messages and copyable drafts, Linear issues, pull request descriptions and comments, and shared documents or sites should use descriptive names, canonical identifiers, and direct links.
-- Treat a copyable public or team-facing draft as public material even when it is composed inside private task chat. Translate private labels found in the prompt or source notes before returning the draft; do not preserve them for traceability.
-- A plain answer, status, verified result, or single Slack link does not need shorthand. Do not add a private alias merely because one artifact or link appears.
-- Ordinary prose without a useful private artifact distinction does not need shorthand. Neither do documentation links, citations, or other background sources.
+- Follow the applicable **User communication references** rules in every reply, including plain replies and short updates. At first mention in each message, identify the subject beside its status, result, or question and link it when possible. Include a tracked item's identifier and title or short description. Earlier messages, private shorthand, and later source lists do not replace this introduction.
+- Shorthands help the user refer back to items; they are not abbreviations for the agent. Follow every shorthand immediately with the full name or description of its referent. For tracked work, include its canonical identifier and title or description. Keep this pairing on repeat mentions, including in headings, table cells, links, and handoffs. Earlier context or a separate legend never permits a shorthand alone.
+- Reuse established labels for the same items across messages. Preserve their mapping in authorized task records and handoffs; do not renumber or recycle labels.
+- Keep private artifact and workstream shorthand out of public or team-facing material unless the user explicitly asks to preserve it in that public communication. Use descriptive names, canonical identifiers, and direct links in Slack, Linear, PR prose, and shared documents or sites.
+- Classify copyable drafts by intended destination, even inside private chat. Labels supplied in prompts or source notes are context, not permission to publish them; translate or remove them unless the user explicitly requests their inclusion.
+- A single item, documentation link, or source still receives a label when the applicable reference rules call for one. Ordinary connective prose does not need labels.
 
 ## Use Canonical Workstream Markers
 
-This skill defines the workstream markers. Use the complete `WS[xx.yy]` marker for a current workstream step in private task prose, steering, snapshots, private durable references, lifecycle descriptions, and the Steps UI. Keep it out of public or team-facing material.
+This skill defines the workstream markers. Use the complete `WS[xx.yy]` marker for a current workstream step in private task prose, steering, snapshots, private durable references, lifecycle descriptions, and the Steps UI. Follow every marker with the full workstream or step name. Apply the public communication restriction above when writing for a public or team-facing destination.
 
 - `xx` is the stable workstream lane. Write it as two digits and add a leading zero when necessary.
 - `yy` is the current step in that lane. Write it as two digits and add a leading zero when necessary.
@@ -125,11 +125,12 @@ Give each actual lifecycle event its own horizontal rule, timestamp, line, and `
 
 ## Verify Before Sending
 
-Apply format checks below to the formats chosen or required for this message. Plain replies do not need steering labels, markers, or receipts unless applicable instructions require them.
+Apply format checks below to the formats chosen or required for this message. The reference checks apply to every message. Plain replies do not need steering labels, markers, or receipts unless applicable instructions require them.
 
 - Answer the actual request in plain English and at the requested length.
-- Do not invent or surface an internal `<letter><number>` shorthand in an ordinary operator reply. Preserve it only in an explicitly requested private-only mapping, with the canonical identifier or path visible. Keep internal shorthand out of public or team-facing material.
-- Before returning a copyable public or team-facing draft, scan it for internal aliases, workstream markers, and private worker paths from the prompt or private state and translate them into descriptive names or canonical identifiers. Do not add shorthand to an ordinary answer or a lone link.
+- Check each subject's first mention in this message: can the reader identify and locate it from its name or identifier, description when needed, and usable direct link? Keep names stable and pronouns clear. State uncertainty that prevents identification instead of inventing a name, identifier, or link.
+- Check every shorthand, not just first mentions: it must be immediately followed by the full name or description, with the canonical identifier and title or description for tracked work. Preserve established meanings. Include private labels in public or team-facing material only when the user explicitly requests it for that communication.
+- Before returning a public or team-facing draft, translate private worker paths and any internal labels or workstream markers not authorized for that destination into descriptive names or canonical identifiers.
 - Keep ordinary private Codex assistant/user messages, agent-to-agent messages, task-to-task coordination, status updates, and handoffs unsigned because the runtime supplies source identity. A copyable draft for an external or team-facing destination remains covered by that destination's required signature rule even when returned inside private task chat.
 - Use the complete, verified `WS[xx.yy]` marker consistently when a current workstream matters.
 - Mark every running assignment `in_progress` when the runtime supports it, and keep its `[active]` label and verified `/root/...` worker path visible.

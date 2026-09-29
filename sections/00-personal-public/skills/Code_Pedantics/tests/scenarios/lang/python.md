@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use `$Code_Pedantics`.
+Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
 
 A Python CLI reads `SERVICE_TOKEN` at import time, then refreshes the token after login by assigning a new value to that module global. Its default config path is written inline as `Path(__file__).resolve().parents[2] / "config.yaml"`. The CLI parses a JSON API response with a broad cast before constructing a typed result. A cleanup also removes `from __future__ import annotations` because the local interpreter is new enough. Choose the review result. Do not modify files.
 

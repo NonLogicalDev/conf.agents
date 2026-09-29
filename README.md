@@ -38,7 +38,9 @@ Use `{{%_resources_%}}` for installed resources and `{{%_skills_%}}` for install
 
 Each standalone skill lives in its own directory. Its `SKILL.md` frontmatter names the skill, describes when to use it, and matches the directory name. The complete winning skill directory is copied into the generated skill tree.
 
-`Agent_Guidance` is a generated mirror of the current `AGENTS.md`. Its source `SKILL.md` contains one `{{%_agents_%}}` placeholder, which the renderer replaces with the combined instructions from the selected sections. The same body is included in either the installed skills directory or the marketplace plugin. Edit the instruction fragments to update it; do not maintain a second copy in the skill. A generated mirror can contain private instructions and must not be exported as public source.
+Inside a skill, `{{%_resources_%}}/group/file.md` becomes a path to `resources/group/file.md` within that skill. Paths are relative to the file containing the reference, so a file in `references/` uses `../resources/`. The renderer copies each referenced resource using the selected section's version. It also includes other known resources linked from copied Markdown files. A directory reference copies that directory; the bare placeholder copies all resources. Missing references and conflicts with files already in the skill stop the render. Source files remain unchanged.
+
+`Agent_Guidance` is a generated mirror of the current `AGENTS.md`. Its source `SKILL.md` contains one `{{%_agents_%}}` placeholder, which the renderer replaces with the combined instructions from the selected sections. Resource paths point to copies inside the skill. The top-level `AGENTS.md` continues to use installed shared resources. These rules apply to both standalone skills and marketplace packages. Edit the instruction fragments to update the mirror; do not maintain a second copy in the skill. A generated mirror can contain private instructions and must not be exported as public source.
 
 Resources are grouped by purpose and copied without changing their relative paths. A later resource can replace an earlier file or directory. Optional marketplaces remain in their source sections and are not automatically installed or flattened into standalone skills.
 
@@ -103,6 +105,14 @@ Activate a generation only when you intend to update the agent's installed confi
 
 Syncing updates only links managed by the renderer. It preserves unrelated skills and resources and refuses to overwrite unmanaged configuration. Marketplace installation and publication remain separate actions.
 
+### Skill marketplace mode
+
+Add `--skill-marketplace` to `sync` to build the personal skill package instead of installing skill links. The renderer owns the plugin manifest and catalog format; it does not load scripts from installed Codex skills. This mode requires PyYAML, which `ajust agents-sync` supplies.
+
+Before replacing a package, the renderer validates skill frontmatter and the catalog, checks for local package edits and unsafe symlinks, and preserves other catalog entries and existing policy. Every successful build increments the plugin patch version. Building does not install or publish the plugin.
+
+Use `--instructions-only` for DevBoxes. It updates instructions and resources, removes only managed skill links, and leaves marketplace files untouched. It requires neither PyYAML nor installed skills. The two modes cannot be combined.
+
 ## Prune old generations
 
 Remove unused generations while retaining the five newest:
@@ -130,3 +140,20 @@ Reset installed configuration only when you intend to remove its current links:
 Reset backs up the existing `AGENTS.md` and the complete `skills/` directory as `~/.codex/skills.<epoch>.bak`. When both backups are needed, they use the same timestamp. It then removes stale direct skill links and only resource links managed by the previous generation root. Live skill directories, regular files, unrelated resource links, and nested links remain untouched. Reset does not render or activate another generation.
 
 A full source workspace may additionally provide `just agents-render`, `just agents-check`, `just agents-sync`, `just agents-prune`, `just agents-reset`, and `just agents-test`. Those convenience commands depend on that workspace's Justfile; the direct renderer commands above work in either checkout.
+
+## Codex command rules
+
+Store Codex `.rules` files in a section's `rules/` directory. Later sections replace earlier files with the same name. Rule sources must be regular files directly inside that directory; symlinks and nested directories are rejected. The private `guardian-usage.rules` source lives in `sections/02-oai-private/rules/`.
+
+Rendering copies rules into each immutable generation's `rules/` directory. Both normal sync and `--instructions-only` sync install managed links under `<codex-dir>/rules/`. Existing unrelated rules are preserved, conflicting unmanaged files cause an error, and deleting a source removes only its managed link on the next sync. Pruning preserves generations referenced by active rule links.
+
+To update only rules while leaving installed instructions, skills, resources, and marketplace contents unchanged:
+
+```bash
+scripts/reconcile-config sync --rules-only \
+  --config-dir "$PWD" \
+  --render-dir "${XDG_STATE_HOME:-$HOME/.local/state}/agent-config" \
+  --codex-dir "${CODEX_HOME:-$HOME/.codex}"
+```
+
+The existing `ajust agents-sync` and `ajust agents-sync-remote` workflows include rules automatically. Sync installs the files; restart Codex to load them. Rule content changes permission behavior, so review and validate them with `codex execpolicy check` before syncing. The renderer copies rule contents without interpreting them. The legacy `reset` operation continues to reset instructions and skills; rule links are reconciled through sync.
