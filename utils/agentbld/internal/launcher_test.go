@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -61,7 +61,7 @@ func newLauncherFixture(t *testing.T) *launcherFixture {
 	}
 	source := os.Getenv("AGENTBLD_LAUNCHER")
 	if source == "" {
-		source = filepath.Join("..", "..", "scripts", "reconcile-config")
+		source = filepath.Join("..", "..", "..", "scripts", "reconcile-config")
 	}
 	data, err := os.ReadFile(source)
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"bytes"
@@ -98,6 +98,13 @@ func discoverGenerations(root string) ([]generation, error) {
 		}
 		seen[ordinal] = true
 		file := filepath.Join(path, "AGENTS.md")
+		if !isRegular(file) && isRegular(filepath.Join(path, snapshotFile)) {
+			if _, err := readSnapshot(path); err != nil {
+				return nil, err
+			}
+			result = append(result, generation{ordinal, path})
+			continue
+		}
 		if isLink(file) || !isRegular(file) {
 			return nil, fmt.Errorf("generation has no regular AGENTS.md: %s", path)
 		}
@@ -130,23 +137,44 @@ func copyPlanFile(p *renderPlan, relative, dst string) error {
 	if e = os.WriteFile(dst, b, info.Mode().Perm()); e != nil {
 		return e
 	}
-	return os.Chmod(dst, info.Mode().Perm())
+	mode := info.Mode().Perm()
+	if saved, ok := p.fileModes[relative]; ok {
+		mode = saved
+	}
+	return os.Chmod(dst, mode)
 }
-func renderedMatches(root string, p *renderPlan) bool {
+func renderedMatches(root string, p *renderPlan, config []byte) bool {
+	return renderedPlansMatch(root, map[string]*renderPlan{"": p}, config)
+}
+func renderedPlansMatch(root string, plans map[string]*renderPlan, config []byte) bool {
 	info, e := os.Lstat(root)
 	if e != nil || !info.IsDir() || info.Mode().Perm()&0222 != 0 {
 		return false
 	}
-	b, e := os.ReadFile(filepath.Join(root, "AGENTS.md"))
-	if e != nil || string(b) != p.agents {
+	metadata, e := os.ReadFile(filepath.Join(root, snapshotFile))
+	if e != nil || !bytes.Equal(metadata, config) {
 		return false
 	}
-	expected := map[string]bool{"AGENTS.md": true}
-	for d := range p.dirs {
-		expected[d] = true
-	}
-	for f := range p.files {
-		expected[f] = true
+	expected := map[string]bool{snapshotFile: true}
+	for name, p := range plans {
+		if name != "" {
+			expected[name] = true
+		}
+		instruction := p.instructionsName
+		if instruction == "" {
+			instruction = "AGENTS.md"
+		}
+		b, err := os.ReadFile(filepath.Join(root, name, instruction))
+		if err != nil || string(b) != p.agents {
+			return false
+		}
+		expected[filepath.Join(name, instruction)] = true
+		for d := range p.dirs {
+			expected[filepath.Join(name, d)] = true
+		}
+		for f := range p.files {
+			expected[filepath.Join(name, f)] = true
+		}
 	}
 	count := 0
 	e = walk(root, func(path string, d os.DirEntry) error {
@@ -164,43 +192,50 @@ func renderedMatches(root string, p *renderPlan) bool {
 	if e != nil || count != len(expected) {
 		return false
 	}
-	for d := range p.dirs {
-		if !isDir(filepath.Join(root, d)) {
-			return false
-		}
-	}
-	for rel, src := range p.files {
-		dst := filepath.Join(root, rel)
-		s, e := os.Stat(src)
-		if e != nil {
-			return false
-		}
-		d, e := os.Stat(dst)
-		if e != nil || !d.Mode().IsRegular() || d.Mode().Perm() != s.Mode().Perm()&^0222 {
-			return false
-		}
-		expected, ok := p.contents[rel]
-		if !ok {
-			expected, e = os.ReadFile(src)
-			if e != nil {
+	for name, p := range plans {
+		for d := range p.dirs {
+			if !isDir(filepath.Join(root, name, d)) {
 				return false
 			}
 		}
-		got, e := os.ReadFile(dst)
-		if e != nil || !bytes.Equal(got, expected) {
-			return false
+		for rel, src := range p.files {
+			dst := filepath.Join(root, name, rel)
+			s, e := os.Stat(src)
+			if e != nil {
+				return false
+			}
+			d, e := os.Stat(dst)
+			if e != nil || !d.Mode().IsRegular() || d.Mode().Perm() != s.Mode().Perm()&^0222 {
+				return false
+			}
+			expected, ok := p.contents[rel]
+			if !ok {
+				expected, e = os.ReadFile(src)
+				if e != nil {
+					return false
+				}
+			}
+			got, e := os.ReadFile(dst)
+			if e != nil || !bytes.Equal(got, expected) {
+				return false
+			}
 		}
 	}
 	return true
 }
-func summary(p *renderPlan, gen, status string) {
-	name := "none"
-	dest := "none"
+func summaryPlans(plans map[string]*renderPlan, gen, status string) {
+	name, dest := "none", "none"
 	if gen != "" {
-		name = filepath.Base(gen)
-		dest = gen
+		name, dest = filepath.Base(gen), gen
 	}
-	fmt.Printf("rendered agent-config: layers=%d fragments=%d skills=%d resources=%d generation=%s status=%s destination=%s\n", len(p.layers), p.fragments, len(p.skills), len(p.resources), name, status, dest)
+	layers, fragments, skills, resources := 0, 0, 0, 0
+	for _, p := range plans {
+		layers += len(p.layers)
+		fragments += p.fragments
+		skills += len(p.skills)
+		resources += len(p.resources)
+	}
+	fmt.Printf("rendered agent-config: layers=%d fragments=%d skills=%d resources=%d generation=%s status=%s destination=%s\n", layers, fragments, skills, resources, name, status, dest)
 }
 func aliasMatches(root, gen string) bool {
 	target, e := os.Readlink(filepath.Join(root, "latest"))
@@ -224,7 +259,10 @@ func updateAlias(root, gen string) error {
 
 // performRender reuses an identical immutable generation or stages a new one
 // before publishing it and updating the latest alias.
-func performRender(root string, p *renderPlan) (string, error) {
+func performRender(root string, p *renderPlan, config []byte) (string, error) {
+	return performRenderPlans(root, map[string]*renderPlan{"": p}, config)
+}
+func performRenderPlans(root string, plans map[string]*renderPlan, config []byte) (string, error) {
 	gens, e := discoverGenerations(root)
 	if e != nil {
 		return "", e
@@ -232,11 +270,11 @@ func performRender(root string, p *renderPlan) (string, error) {
 	ordinal := 1
 	if len(gens) > 0 {
 		last := gens[len(gens)-1]
-		if renderedMatches(last.path, p) {
+		if renderedPlansMatch(last.path, plans, config) {
 			if e = updateAlias(root, last.path); e != nil {
 				return "", e
 			}
-			summary(p, last.path, "up-to-date")
+			summaryPlans(plans, last.path, "up-to-date")
 			return last.path, nil
 		}
 		ordinal = last.ordinal + 1
@@ -258,21 +296,34 @@ func performRender(root string, p *renderPlan) (string, error) {
 	if e = os.Mkdir(candidate, 0755); e != nil {
 		return "", e
 	}
-	if e = os.WriteFile(filepath.Join(candidate, "AGENTS.md"), []byte(p.agents), 0644); e != nil {
+	if e = os.WriteFile(filepath.Join(candidate, snapshotFile), config, 0644); e != nil {
 		return "", e
 	}
-	for _, dir := range sortedKeys(p.dirs) {
-		if e = os.MkdirAll(filepath.Join(candidate, dir), 0755); e != nil {
+	for name, p := range plans {
+		base := filepath.Join(candidate, name)
+		if e = os.MkdirAll(base, 0755); e != nil {
 			return "", e
 		}
-	}
-	for _, rel := range sortedKeys(p.files) {
-		target := filepath.Join(candidate, rel)
-		if e = os.MkdirAll(filepath.Dir(target), 0755); e != nil {
+		instruction := p.instructionsName
+		if instruction == "" {
+			instruction = "AGENTS.md"
+		}
+		if e = os.WriteFile(filepath.Join(base, instruction), []byte(p.agents), 0644); e != nil {
 			return "", e
 		}
-		if e = copyPlanFile(p, rel, target); e != nil {
-			return "", e
+		for _, dir := range sortedKeys(p.dirs) {
+			if e = os.MkdirAll(filepath.Join(base, dir), 0755); e != nil {
+				return "", e
+			}
+		}
+		for _, rel := range sortedKeys(p.files) {
+			target := filepath.Join(base, rel)
+			if e = os.MkdirAll(filepath.Dir(target), 0755); e != nil {
+				return "", e
+			}
+			if e = copyPlanFile(p, rel, target); e != nil {
+				return "", e
+			}
 		}
 	}
 	var paths []string
@@ -304,6 +355,6 @@ func performRender(root string, p *renderPlan) (string, error) {
 	if e = updateAlias(root, dest); e != nil {
 		return "", e
 	}
-	summary(p, dest, "created")
+	summaryPlans(plans, dest, "created")
 	return dest, nil
 }

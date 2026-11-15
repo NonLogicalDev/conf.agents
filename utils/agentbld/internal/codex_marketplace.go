@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"crypto/sha256"
@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const marketplacePlugin = "skillset-uoleg"
+const marketplacePlugin = "skillset"
 const marketplaceMarker = ".managed-skillset.json"
 
 func marketNonempty(value any) bool {
@@ -254,82 +254,179 @@ func marketplaceNoSymlinkAncestors(path string) error {
 	}
 }
 
-func populateMarketplace(plan *renderPlan, home string) (map[string]any, error) {
-	if len(plan.skills) == 0 {
-		return nil, fmt.Errorf("refusing to publish an empty skill collection")
+// pluginWithoutGuidance keeps the generation plan intact when standalone skills
+// include guidance but the plugin must omit it.
+func pluginWithoutGuidance(plan *renderPlan) *renderPlan {
+	result := *plan
+	result.skills = make(map[string]string, len(plan.skills))
+	for name, source := range plan.skills {
+		if name != "Agent_Guidance" {
+			result.skills[name] = source
+		}
 	}
-	marketplace := filepath.Join(home, ".agents/plugins/marketplace.json")
-	destination := filepath.Join(home, "plugins", marketplacePlugin)
+	result.files = make(map[string]string, len(plan.files))
+	for path, source := range plan.files {
+		if !within(path, filepath.Join("skills", "Agent_Guidance")) {
+			result.files[path] = source
+		}
+	}
+	result.contents = make(map[string][]byte, len(plan.contents))
+	for path, content := range plan.contents {
+		if !within(path, filepath.Join("skills", "Agent_Guidance")) {
+			result.contents[path] = content
+		}
+	}
+	return &result
+}
+
+// managedMarketplaceVersion verifies ownership and returns the next package version.
+func managedMarketplaceVersion(destination string) (string, bool, error) {
+	if _, err := os.Lstat(destination); err != nil {
+		if os.IsNotExist(err) {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+	marker := filepath.Join(destination, marketplaceMarker)
+	info, err := os.Lstat(marker)
+	if err != nil || !info.Mode().IsRegular() {
+		return "", false, fmt.Errorf("refusing to replace an unmanaged plugin: %s", destination)
+	}
+	data, err := os.ReadFile(marker)
+	if err != nil {
+		return "", false, err
+	}
+	var existing struct {
+		Files map[string]string `json:"files"`
+	}
+	if err := json.Unmarshal(data, &existing); err != nil {
+		return "", false, fmt.Errorf("invalid plugin marker: %w", err)
+	}
+	inventory, err := marketplaceInventory(destination)
+	if err != nil {
+		return "", false, err
+	}
+	if !reflect.DeepEqual(existing.Files, inventory) {
+		return "", false, fmt.Errorf("generated plugin has local edits: %s", destination)
+	}
+	data, err = os.ReadFile(filepath.Join(destination, ".codex-plugin/plugin.json"))
+	if err != nil {
+		return "", false, err
+	}
+	var manifest struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		return "", false, err
+	}
+	match := marketVersion.FindStringSubmatch(manifest.Version)
+	if match == nil {
+		return "", false, fmt.Errorf("cannot increment marketplace plugin version: %s", manifest.Version)
+	}
+	patch, err := strconv.ParseUint(match[3], 10, 64)
+	if err != nil || patch == ^uint64(0) {
+		return "", false, fmt.Errorf("cannot increment marketplace plugin version: %s", manifest.Version)
+	}
+	return fmt.Sprintf("%s.%s.%d", match[1], match[2], patch+1), true, nil
+}
+
+type marketplaceSetup struct {
+	marketplace, destination, version string
+	catalog                           map[string]any
+	plugins                           []any
+	entry                             map[string]any
+	matched                           bool
+}
+
+// inspectMarketplace validates all existing catalog and package ownership before any writes.
+func inspectMarketplace(plan *renderPlan, marketplaceDir, pluginName string) (marketplaceSetup, error) {
+	if len(plan.skills) == 0 {
+		return marketplaceSetup{}, fmt.Errorf("refusing to publish an empty skill collection")
+	}
+	marketplace := filepath.Join(marketplaceDir, "marketplace.json")
+	destination := filepath.Join(marketplaceDir, pluginName)
+	// The personal marketplace resolves local sources from the directory two
+	// levels above its .agents/plugins catalog.
+	discoveryRoot := filepath.Dir(filepath.Dir(marketplaceDir))
+	relative, err := filepath.Rel(discoveryRoot, destination)
+	if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return marketplaceSetup{}, fmt.Errorf("plugin destination is outside marketplace root: %s", destination)
+	}
+	sourcePath := "./" + filepath.ToSlash(relative)
+	legacyPath := "./plugins/" + pluginName
 	for _, path := range []string{marketplace, destination} {
 		if err := marketplaceNoSymlinkAncestors(path); err != nil {
-			return nil, err
+			return marketplaceSetup{}, err
 		}
 	}
 	catalog, err := loadMarketplace(marketplace)
 	if err != nil {
-		return nil, err
+		return marketplaceSetup{}, err
 	}
 	plugins := catalog["plugins"].([]any)
-	entry := map[string]any{"name": marketplacePlugin, "source": map[string]any{"source": "local", "path": "./plugins/" + marketplacePlugin}, "policy": map[string]any{"installation": "AVAILABLE", "authentication": "ON_INSTALL"}, "category": "Productivity"}
+	entry := map[string]any{"name": pluginName, "source": map[string]any{"source": "local", "path": sourcePath}, "policy": map[string]any{"installation": "AVAILABLE", "authentication": "ON_INSTALL"}, "category": "Productivity"}
 	matched := false
+	migrating := false
 	for _, value := range plugins {
 		plugin := value.(map[string]any)
-		if plugin["name"] != marketplacePlugin {
+		if plugin["name"] != pluginName {
 			continue
 		}
 		matched = true
-		sourcePath, sourceIsString := plugin["source"].(string)
-		if !reflect.DeepEqual(plugin["source"], entry["source"]) && !(sourceIsString && sourcePath == "./plugins/"+marketplacePlugin) {
-			return nil, fmt.Errorf("existing %s entry points elsewhere", marketplacePlugin)
+		source := plugin["source"]
+		path, stringSource := source.(string)
+		localSource, objectSource := source.(map[string]any)
+		if objectSource && localSource["source"] == "local" {
+			path, _ = localSource["path"].(string)
+		}
+		if !stringSource && !objectSource {
+			return marketplaceSetup{}, fmt.Errorf("existing %s entry points elsewhere", pluginName)
+		}
+		if path == legacyPath {
+			migrating = true
+			// Keep the old source representation and all unrelated metadata.
+			if stringSource {
+				plugin["source"] = sourcePath
+			} else {
+				localSource["path"] = sourcePath
+			}
+		} else if path != sourcePath || (objectSource && !reflect.DeepEqual(source, entry["source"])) {
+			return marketplaceSetup{}, fmt.Errorf("existing %s entry points elsewhere", pluginName)
 		}
 	}
 	version := "0.1.0"
-	if _, err := os.Lstat(destination); err == nil {
-		marker := filepath.Join(destination, marketplaceMarker)
-		info, err := os.Lstat(marker)
-		if err != nil || !info.Mode().IsRegular() {
-			return nil, fmt.Errorf("refusing to replace an unmanaged plugin: %s", destination)
+	if migrating {
+		oldDestination := filepath.Join(discoveryRoot, "plugins", pluginName)
+		if err := marketplaceNoSymlinkAncestors(oldDestination); err != nil {
+			return marketplaceSetup{}, err
 		}
-		data, err := os.ReadFile(marker)
+		next, present, err := managedMarketplaceVersion(oldDestination)
 		if err != nil {
-			return nil, err
+			return marketplaceSetup{}, err
 		}
-		// A matching marker establishes that replacing the generated package will not discard local edits.
-		var existing struct {
-			Files map[string]string `json:"files"`
+		if !present {
+			return marketplaceSetup{}, fmt.Errorf("legacy plugin is missing: %s", oldDestination)
 		}
-		if err := json.Unmarshal(data, &existing); err != nil {
-			return nil, fmt.Errorf("invalid plugin marker: %w", err)
-		}
-		inventory, err := marketplaceInventory(destination)
-		if err != nil {
-			return nil, err
-		}
-		if !reflect.DeepEqual(existing.Files, inventory) {
-			return nil, fmt.Errorf("generated plugin has local edits: %s", destination)
-		}
-		data, err = os.ReadFile(filepath.Join(destination, ".codex-plugin/plugin.json"))
-		if err != nil {
-			return nil, err
-		}
-		var manifest struct {
-			Version string `json:"version"`
-		}
-		if err := json.Unmarshal(data, &manifest); err != nil {
-			return nil, err
-		}
-		match := marketVersion.FindStringSubmatch(manifest.Version)
-		if match == nil {
-			return nil, fmt.Errorf("cannot increment marketplace plugin version: %s", manifest.Version)
-		}
-		patch, err := strconv.ParseUint(match[3], 10, 64)
-		if err != nil || patch == ^uint64(0) {
-			return nil, fmt.Errorf("cannot increment marketplace plugin version: %s", manifest.Version)
-		}
-		version = fmt.Sprintf("%s.%s.%d", match[1], match[2], patch+1)
-	} else if !os.IsNotExist(err) {
+		version = next
+	}
+	next, present, err := managedMarketplaceVersion(destination)
+	if err != nil {
+		return marketplaceSetup{}, err
+	}
+	if present {
+		version = next
+	}
+	return marketplaceSetup{marketplace, destination, version, catalog, plugins, entry, matched}, nil
+}
+
+func populateMarketplace(plan *renderPlan, marketplaceDir, pluginName string) (map[string]any, error) {
+	setup, err := inspectMarketplace(plan, marketplaceDir, pluginName)
+	if err != nil {
 		return nil, err
 	}
+	marketplace, destination, version := setup.marketplace, setup.destination, setup.version
+	catalog, plugins, entry, matched := setup.catalog, setup.plugins, setup.entry, setup.matched
+
 	if err := os.MkdirAll(filepath.Dir(destination), 0755); err != nil {
 		return nil, err
 	}
@@ -344,7 +441,7 @@ func populateMarketplace(plan *renderPlan, home string) (map[string]any, error) 
 			_ = os.RemoveAll(temp)
 		}
 	}()
-	stage := filepath.Join(temp, marketplacePlugin)
+	stage := filepath.Join(temp, pluginName)
 	if err := os.Mkdir(stage, 0755); err != nil {
 		return nil, err
 	}
@@ -357,7 +454,7 @@ func populateMarketplace(plan *renderPlan, home string) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	manifest := map[string]any{"name": marketplacePlugin, "version": version, "description": "Oleg's complete managed skill collection", "author": map[string]any{"name": "uoleg"}, "skills": "./skills/", "interface": map[string]any{"displayName": "Skillset(uoleg)", "shortDescription": "Oleg's managed skills", "longDescription": "The effective personal and private skills from agent-config, with shared reference files.", "developerName": "uoleg", "category": "Productivity", "capabilities": []any{}, "defaultPrompt": "Use my managed skill collection."}}
+	manifest := map[string]any{"name": pluginName, "version": version, "description": "Managed skill collection", "skills": "./skills/", "interface": map[string]any{"displayName": pluginName, "shortDescription": "Managed skills", "longDescription": "Skills from agent-config, with shared reference files.", "developerName": "Personal", "category": "Productivity", "capabilities": []any{}, "defaultPrompt": "Use my managed skill collection."}}
 	if err := marketplaceWriteJSON(filepath.Join(stage, ".codex-plugin/plugin.json"), manifest); err != nil {
 		return nil, err
 	}
@@ -428,5 +525,5 @@ func populateMarketplace(plan *renderPlan, home string) (map[string]any, error) 
 		}
 		return nil, err
 	}
-	return map[string]any{"plugin": destination, "marketplace": marketplace, "marketplace_name": catalog["name"], "skills": len(plan.skills), "version": version}, nil
+	return map[string]any{"plugin": destination, "plugin_name": pluginName, "marketplace": marketplace, "marketplace_name": catalog["name"], "skills": len(plan.skills), "version": version}, nil
 }

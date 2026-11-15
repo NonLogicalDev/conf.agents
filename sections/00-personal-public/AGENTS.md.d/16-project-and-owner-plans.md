@@ -14,7 +14,7 @@ Use `<agent-home>` for the agent home configured by the user or project. Use the
 
 `<plan-root>/_owner/` is the optional folder for owner support files.
 
-- Use [$@:Tasker_Stream](skill://@:Tasker_Stream) when one owner coordinates subagents or maintains shared project context. Follow that skill for owner plans, workstreams, structure, and execution.
+- Use [$@:Tasker_Stream](skill://@/Tasker_Stream) when one owner coordinates subagents or maintains shared project context. Follow that skill for owner plans, workstreams, structure, and execution.
 - Name a new owner `<project>__YYYY-qN__<slug>` using the verified project and the year and quarter when the work began. Keep an existing owner's name and history when the quarter changes.
 - When a group represents an issue:
   - Use a verified existing ticket's actual team key and number.

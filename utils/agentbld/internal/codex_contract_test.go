@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	contractBinary = filepath.Join(dir, "agentbld")
-	cmd := exec.Command("go", "build", "-o", contractBinary, ".")
+	cmd := exec.Command("go", "build", "-o", contractBinary, "..")
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	if err := cmd.Run(); err != nil {
 		os.RemoveAll(dir)
@@ -70,6 +70,10 @@ func (f *contractFixture) put(root, name, value string) string {
 func (f *contractFixture) run(op string, want int, extra ...string) string {
 	f.t.Helper()
 	args := []string{op, "--config-dir", f.config, "--render-dir", f.render, "--codex-dir", f.codex, "--home", f.home}
+	if op == "sync" {
+		args[0] = "render"
+		args = append(args, "--sync")
+	}
 	args = append(args, extra...)
 	cmd := exec.Command(contractBinary, args...)
 	out, err := cmd.CombinedOutput()
@@ -137,16 +141,16 @@ func TestContractRenderCheckAndImmutableGenerations(t *testing.T) {
 	f.run("check", 1)
 	f.run("render", 0)
 	first := f.latest()
-	agents := f.read(filepath.Join(first, "AGENTS.md"))
-	for _, p := range []string{filepath.Join(f.codex, "resources"), filepath.Join(f.codex, "skills")} {
+	agents := f.read(filepath.Join(first, "codex", "AGENTS.md"))
+	for _, p := range []string{"{{%_resources_%}}", "{{%_skills_%}}"} {
 		if !strings.Contains(agents, p) {
 			t.Fatalf("missing %s in %s", p, agents)
 		}
 	}
-	if got := f.read(filepath.Join(first, "skills/Alpha/resources/guide/second.md")); got != "linked resource\n" {
+	if got := f.read(filepath.Join(first, "codex", "skills/Alpha/resources/guide/second.md")); got != "linked resource\n" {
 		t.Fatal(got)
 	}
-	if !strings.Contains(f.read(filepath.Join(first, "skills/Alpha/SKILL.md")), "resources/guide/first.md") {
+	if !strings.Contains(f.read(filepath.Join(first, "codex", "skills/Alpha/SKILL.md")), "resources/guide/first.md") {
 		t.Fatal("resource placeholder not expanded")
 	}
 	err := filepath.WalkDir(first, func(p string, d fs.DirEntry, e error) error {
@@ -176,7 +180,7 @@ func TestContractRenderCheckAndImmutableGenerations(t *testing.T) {
 	if first == f.latest() {
 		t.Fatal("generation not changed")
 	}
-	if !strings.Contains(f.read(filepath.Join(first, "AGENTS.md")), "Base ") {
+	if !strings.Contains(f.read(filepath.Join(first, "codex", "AGENTS.md")), "Base ") {
 		t.Fatal("prior generation modified")
 	}
 	f.run("check", 0)
@@ -190,17 +194,17 @@ func TestContractPrecedenceAndGuidance(t *testing.T) {
 	f.put(f.layer, "skills/Agent_Guidance/SKILL.md", "---\nname: Agent_Guidance\ndescription: Guidance\n---\n{{%_agents_%}}\n")
 	f.run("render", 0)
 	gen := f.latest()
-	agents := f.read(filepath.Join(gen, "AGENTS.md"))
+	agents := f.read(filepath.Join(gen, "codex", "AGENTS.md"))
 	if !strings.Contains(agents, "Winning fragment") || strings.Contains(agents, "Base ") {
 		t.Fatal(agents)
 	}
-	if !strings.Contains(f.read(filepath.Join(gen, "skills/Alpha/SKILL.md")), "Winner") {
+	if !strings.Contains(f.read(filepath.Join(gen, "codex", "skills/Alpha/SKILL.md")), "Winner") {
 		t.Fatal("skill precedence")
 	}
-	if f.read(filepath.Join(gen, "resources/guide/first.md")) != "winning resource\n" {
+	if f.read(filepath.Join(gen, "codex", "resources/guide/first.md")) != "winning resource\n" {
 		t.Fatal("resource precedence")
 	}
-	if !strings.Contains(f.read(filepath.Join(gen, "skills/Agent_Guidance/SKILL.md")), "Winning fragment") {
+	if !strings.Contains(f.read(filepath.Join(gen, "codex", "skills/Agent_Guidance/SKILL.md")), "Winning fragment") {
 		t.Fatal("guidance not expanded")
 	}
 }
@@ -208,10 +212,15 @@ func TestContractSyncAndInstructionsOnly(t *testing.T) {
 	f := newContractFixture(t)
 	f.run("sync", 0)
 	first := f.latest()
-	for dest, src := range map[string]string{"AGENTS.md": "AGENTS.md", "skills/Alpha": "skills/Alpha", "rules/default.rules": "rules/default.rules"} {
-		if f.resolved(filepath.Join(f.codex, dest)) != filepath.Join(first, src) {
-			t.Fatal(dest)
-		}
+	for _, dest := range []string{"AGENTS.md", "skills/Alpha", "rules/default.rules"} {
+		f.symlink(filepath.Join(f.codex, dest))
+	}
+	if got := f.read(filepath.Join(f.codex, "skills/Alpha/SKILL.md")); got != f.read(filepath.Join(first, "codex", "skills/Alpha/SKILL.md")) {
+		t.Fatal("installed skill differs from generation")
+	}
+	firstSkillTarget := f.resolved(filepath.Join(f.codex, "skills/Alpha"))
+	if instructions := f.read(filepath.Join(f.codex, "AGENTS.md")); !strings.Contains(instructions, filepath.Join(f.codex, "resources")) || !strings.Contains(instructions, filepath.Join(f.codex, "skills")) {
+		t.Fatalf("paths not materialized: %s", instructions)
 	}
 	local := filepath.Join(f.codex, "skills/Local")
 	if err := os.Mkdir(local, 0755); err != nil {
@@ -219,7 +228,7 @@ func TestContractSyncAndInstructionsOnly(t *testing.T) {
 	}
 	f.put(f.layer, "AGENTS.md.d/10-base.md", "New instruction\n")
 	f.run("sync", 0)
-	if first == f.latest() || f.resolved(filepath.Join(f.codex, "skills/Alpha")) != filepath.Join(f.latest(), "skills/Alpha") {
+	if first == f.latest() || f.resolved(filepath.Join(f.codex, "skills/Alpha")) == firstSkillTarget {
 		t.Fatal("links not updated")
 	}
 	f.run("sync", 0, "--instructions-only")
@@ -273,7 +282,7 @@ func TestContractPruneActiveGenerationAndRetention(t *testing.T) {
 	}
 	count := 0
 	for _, e := range entries {
-		if e.IsDir() {
+		if e.IsDir() && !strings.HasPrefix(e.Name(), ".") {
 			count++
 		}
 	}
@@ -320,7 +329,6 @@ func TestContractRejectUnsafeSources(t *testing.T) {
 }
 func TestContractRejectIncompatibleModes(t *testing.T) {
 	f := newContractFixture(t)
-	f.run("render", 2, "--instructions-only")
 	f.run("sync", 2, "--rules-only", "--instructions-only")
 	f.absent(f.render)
 }
@@ -329,7 +337,7 @@ func TestContractMarketplaceBuildPreservesCatalogAndRejectsEdits(t *testing.T) {
 	f := newContractFixture(t)
 	catalogPath := f.put(f.home, ".agents/plugins/marketplace.json", `{"name":"custom","plugins":[{"name":"other","source":{"source":"npm","package":"example"},"category":"Other"}]}`)
 	f.run("sync", 0, "--skill-marketplace")
-	plugin := filepath.Join(f.home, "plugins/skillset-uoleg")
+	plugin := filepath.Join(f.home, ".agents/plugins/skillset")
 	manifest := filepath.Join(plugin, ".codex-plugin/plugin.json")
 	if f.json(manifest)["version"] != "0.1.0" {
 		t.Fatal("initial version")
@@ -349,7 +357,7 @@ func TestContractMarketplaceBuildPreservesCatalogAndRejectsEdits(t *testing.T) {
 	var entry map[string]any
 	for _, p := range plugins {
 		m := p.(map[string]any)
-		if m["name"] == "skillset-uoleg" {
+		if m["name"] == "skillset" {
 			entry = m
 		}
 	}
@@ -375,7 +383,7 @@ func TestContractMarketplaceBuildPreservesCatalogAndRejectsEdits(t *testing.T) {
 	}
 	for _, p := range plugins {
 		m := p.(map[string]any)
-		if m["name"] == "skillset-uoleg" && m["policy"].(map[string]any)["installation"] != "INSTALLED_BY_DEFAULT" {
+		if m["name"] == "skillset" && m["policy"].(map[string]any)["installation"] != "INSTALLED_BY_DEFAULT" {
 			t.Fatal("policy changed")
 		}
 	}
@@ -392,10 +400,10 @@ func TestContractMarketplaceRejectsSymlinkDestination(t *testing.T) {
 	if err := os.MkdirAll(outside, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(f.home, 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(f.home, ".agents"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Symlink(outside, filepath.Join(f.home, "plugins")); err != nil {
+	if err := os.Symlink(outside, filepath.Join(f.home, ".agents/plugins")); err != nil {
 		t.Fatal(err)
 	}
 	f.run("sync", 2, "--skill-marketplace")
@@ -409,7 +417,7 @@ func TestContractMarketplaceRejectsInvalidYAML(t *testing.T) {
 	f := newContractFixture(t)
 	f.put(f.layer, "skills/Alpha/SKILL.md", "---\nname: Alpha\ndescription: [unterminated\n---\ntext\n")
 	f.run("sync", 2, "--skill-marketplace")
-	f.absent(filepath.Join(f.home, "plugins/skillset-uoleg"))
+	f.absent(filepath.Join(f.home, ".agents/plugins/skillset"))
 	f.absent(filepath.Join(f.home, ".agents/plugins/marketplace.json"))
 	f.absent(filepath.Join(f.codex, "AGENTS.md"))
 }
@@ -492,7 +500,7 @@ func TestContractMarkdownEscapedBackslashResource(t *testing.T) {
 	f.put(f.layer, `resources/guide/literal\*.md`, "correct target\n")
 	f.put(f.layer, "resources/guide/literal*.md", "wrong target\n")
 	f.run("render", 0)
-	bundled := filepath.Join(f.latest(), "skills/Alpha/resources/guide")
+	bundled := filepath.Join(f.latest(), "codex", "skills/Alpha/resources/guide")
 	if f.read(filepath.Join(bundled, `literal\*.md`)) != "correct target\n" {
 		t.Fatal("escaped target missing")
 	}
@@ -520,7 +528,7 @@ func TestContractResourceReferenceDecodesValidPercentBeforeInvalid(t *testing.T)
 	f.put(f.layer, "skills/Alpha/SKILL.md", "---\nname: Alpha\ndescription: Example\n---\n{{%_resources_%}}/guide/a%20b.md %\n")
 	f.put(f.layer, "resources/guide/a b.md", "decoded\n")
 	f.run("render", 0)
-	if f.read(filepath.Join(f.latest(), "skills/Alpha/resources/guide/a b.md")) != "decoded\n" {
+	if f.read(filepath.Join(f.latest(), "codex", "skills/Alpha/resources/guide/a b.md")) != "decoded\n" {
 		t.Fatal("percent-encoded resource missing")
 	}
 }

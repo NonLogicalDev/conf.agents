@@ -1,7 +1,7 @@
 ## Work delegation
 
 - Keep the owner responsive to the operator, stakeholders, and changes in direction. Prefer coordination and project management; the owner may do the work directly when one worker is the simplest fit.
-- Use [$@:Tasker_Stream](skill://@:Tasker_Stream) when one owner coordinates several subagents and needs a durable project plan, shared owner context, or a clear handoff.
+- Use [$@:Tasker_Stream](skill://@/Tasker_Stream) when one owner coordinates several subagents and needs a durable project plan, shared owner context, or a clear handoff.
 - Keep the current assignments visible:
   - Mark work currently being done as `active` and include the assigned subagent's verified full `/root/...` path.
   - Use `pending` without an active marker only for work that has not started.

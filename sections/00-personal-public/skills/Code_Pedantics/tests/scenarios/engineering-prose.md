@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 A draft external message has a required destination signature, a canonical resource link, one concrete ask, and uncertain evidence. The user asks for a wording cleanup only. Choose the response. Do not send anything.
 
@@ -18,7 +18,7 @@ A draft external message has a required destination signature, a canonical resou
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 A README draft lists changed files and helper names, but it does not say who the tool is for, which prerequisites it needs, how to run the supported path, what result to expect, or what it may modify. Choose the review result. Do not modify files.
 
@@ -34,7 +34,7 @@ A README draft lists changed files and helper names, but it does not say who the
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 A draft Linear description says “Oleg asked us to finish `T3` in `WS[04.01]`; agent `/root/cache_worker` should follow plan `P1`.” The real work is to make cache invalidation reject stale entries, keep existing cache reads compatible, and verify the focused stale-entry regression test. Rewrite the description for an implementer who has not seen the conversation. Do not modify files.
 
@@ -63,7 +63,7 @@ The user explicitly asks to preserve `{T03}` in the public Linear description as
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 A migration design note lists changed files, helper names, and discovery history. It says “roll this out carefully,” but does not name the reader, the outcome, the starting or target state, the order of mutations, validation, rollback, required permission, or remaining risk. Choose the review result. Do not modify files.
 
@@ -94,7 +94,7 @@ A short design note only records a local, reversible choice and has no rollout o
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 A reviewer asks you to format this Markdown guide and says that all prose must fit within 80 characters. Return the corrected Markdown without modifying files.
 
@@ -146,7 +146,7 @@ The author wants to include a past decision only because it was once approved. I
 
 ### Prompt
 
-Use [$@:Code_Pedantics](skill://@:Code_Pedantics).
+Use [$@:Code_Pedantics](skill://@/Code_Pedantics).
 
 The diff reorganizes the editor's keyboard shortcut list beside the commands it describes. The rendered page and links were checked successfully. Revise this PR description for an engineer reviewing the documentation change. Return only the description; do not modify files or publish it. The user waives signatures for this fictional draft.
 

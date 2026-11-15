@@ -9,7 +9,7 @@
 ### Use the available help
 
 - Check which tools, compute, subagents, and remote Codex instances are available before relying on them. Use time and resources efficiently. Do not assume they are unlimited.
-- Use [$@:Tasker_Stream](skill://@:Tasker_Stream) when substantive work benefits from an owner, a durable plan, shared project context, or subagents. Keep a simple task direct when it does not need those records.
+- Use [$@:Tasker_Stream](skill://@/Tasker_Stream) when substantive work benefits from an owner, a durable plan, shared project context, or subagents. Keep a simple task direct when it does not need those records.
 - Delegate independent work when it helps:
   - Before using a remote machine, verify that it is available and you have permission to use it.
   - Keep the owner responsive to the operator's messages and changes in direction.

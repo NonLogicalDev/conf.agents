@@ -1,6 +1,7 @@
-package main
+package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,56 +9,54 @@ import (
 	"time"
 )
 
-type linkPair struct{ dst, src string }
-type linkPlan struct {
-	directory, component string
-	removals             []string
-	links                []linkPair
-	unchanged            int
-}
-type agentsPlan struct {
-	destination, source string
-	remove, unchanged   bool
-}
-
-func managedLink(link, root, component string) bool {
+// managedGeneration identifies only our legacy links or target snapshots for
+// the Codex destination containing the link.
+func managedGeneration(link, root, component string) (string, bool) {
 	if !isLink(link) {
-		return false
+		return "", false
 	}
-	target, e := os.Readlink(link)
-	if e != nil {
-		return false
+	target, err := os.Readlink(link)
+	if err != nil {
+		return "", false
 	}
 	if !filepath.IsAbs(target) {
 		target = filepath.Join(filepath.Dir(link), target)
 	}
-	target, _ = filepath.Abs(target)
-	rel, e := filepath.Rel(root, target)
-	if e != nil {
-		return false
+	target, err = filepath.Abs(target)
+	if err != nil {
+		return "", false
+	}
+	rel, err := filepath.Rel(root, target)
+	if err != nil {
+		return "", false
 	}
 	parts := strings.Split(rel, string(filepath.Separator))
-	if len(parts) < 2 || !generationPattern.MatchString(parts[0]) {
-		return false
+	if len(parts) >= 2 && generationPattern.MatchString(parts[0]) {
+		if component == "AGENTS.md" {
+			return parts[0], len(parts) == 2 && parts[1] == component
+		}
+		return parts[0], len(parts) >= 3 && parts[1] == component
+	}
+	if len(parts) < 4 || parts[0] != ".targets" || !generationPattern.MatchString(parts[2]) {
+		return "", false
+	}
+	codex := filepath.Dir(link)
+	if component != "AGENTS.md" {
+		codex = filepath.Dir(codex)
+	}
+	if parts[1] != targetHash(codex) {
+		return "", false
 	}
 	if component == "AGENTS.md" {
-		return len(parts) == 2 && parts[1] == component
+		return parts[2], len(parts) == 4 && parts[3] == component
 	}
-	return len(parts) >= 3 && parts[1] == component
+	return parts[2], len(parts) >= 5 && parts[3] == component
 }
-func validDir(path, description string) error {
-	info, err := os.Lstat(path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
-		return fmt.Errorf("%s is not a regular directory: %s", description, path)
-	}
-	return nil
+func managedLink(link, root, component string) bool {
+	_, ok := managedGeneration(link, root, component)
+	return ok
 }
+
 func planAgents(codex, gen, root string) (agentsPlan, error) {
 	p := agentsPlan{destination: filepath.Join(codex, "AGENTS.md"), source: filepath.Join(gen, "AGENTS.md")}
 	if e := validDir(codex, "Codex destination"); e != nil {
@@ -146,28 +145,6 @@ func planComponent(codex, gen, root, component string, populate bool) (linkPlan,
 	}
 	return p, nil
 }
-func applyLinks(p linkPlan) error {
-	if e := os.MkdirAll(p.directory, 0755); e != nil {
-		return e
-	}
-	for _, path := range p.removals {
-		if e := os.Remove(path); e != nil {
-			return e
-		}
-		fmt.Printf("removed %s link %s\n", p.component, path)
-	}
-	for _, link := range p.links {
-		target, e := filepath.Rel(p.directory, link.src)
-		if e != nil {
-			return e
-		}
-		if e = os.Symlink(target, link.dst); e != nil {
-			return e
-		}
-		fmt.Printf("linked %s %s -> %s\n", p.component, link.dst, target)
-	}
-	return nil
-}
 func syncRules(codex, gen, root string) error {
 	if e := validDir(codex, "Codex destination"); e != nil {
 		return e
@@ -183,53 +160,80 @@ func syncRules(codex, gen, root string) error {
 	return nil
 }
 
-// Preflight every destination before changing any links, so an unmanaged
-// conflict in one component cannot leave the others partially updated.
-func syncAll(codex, gen, root string, plan *renderPlan, syncSkills, instructionsOnly bool) error {
-	a, e := planAgents(codex, gen, root)
-	if e != nil {
-		return e
+// syncPlan records all link changes after checking for unmanaged conflicts.
+type syncPlan struct {
+	agents                     agentsPlan
+	skills, resources, rules   linkPlan
+	manageAgents, manageSkills bool
+}
+
+// planSync checks every destination before marketplace or link changes begin.
+func planSync(codex, gen, root string, manageAgents, manageSkills, populateSkills bool) (syncPlan, error) {
+	p := syncPlan{manageAgents: manageAgents, manageSkills: manageSkills}
+	var err error
+	if err = validDir(codex, "Codex destination"); err != nil {
+		return p, err
 	}
-	skills, e := planComponent(codex, gen, root, "skills", syncSkills)
-	if e != nil {
-		return e
+	if manageAgents {
+		if p.agents, err = planAgents(codex, gen, root); err != nil {
+			return p, err
+		}
+		if p.resources, err = planComponent(codex, gen, root, "resources", true); err != nil {
+			return p, err
+		}
+		if p.rules, err = planComponent(codex, gen, root, "rules", true); err != nil {
+			return p, err
+		}
 	}
-	resources, e := planComponent(codex, gen, root, "resources", true)
-	if e != nil {
-		return e
+	if manageSkills {
+		if p.skills, err = planComponent(codex, gen, root, "skills", populateSkills); err != nil {
+			return p, err
+		}
 	}
-	rules, e := planComponent(codex, gen, root, "rules", true)
-	if e != nil {
-		return e
-	}
+	return p, nil
+}
+
+func applySync(codex, gen string, plan *renderPlan, syncSkills, instructionsOnly bool, changes syncPlan) error {
+	a, skills, resources, rules := changes.agents, changes.skills, changes.resources, changes.rules
+	var e error
 	if e = os.MkdirAll(codex, 0755); e != nil {
 		return e
 	}
-	if a.remove {
-		if e = os.Remove(a.destination); e != nil {
-			return e
+	status := "skipped"
+	if changes.manageAgents {
+		if a.remove {
+			if e = os.Remove(a.destination); e != nil {
+				return e
+			}
+			fmt.Printf("removed instructions %s\n", a.destination)
 		}
-		fmt.Printf("removed instructions %s\n", a.destination)
+		status = "unchanged"
+		if !a.unchanged {
+			target, e := filepath.Rel(codex, a.source)
+			if e != nil {
+				return e
+			}
+			if e = os.Symlink(target, a.destination); e != nil {
+				return e
+			}
+			fmt.Printf("linked instructions %s -> %s\n", a.destination, target)
+			status = "linked"
+		}
 	}
-	status := "unchanged"
-	if !a.unchanged {
-		target, e := filepath.Rel(codex, a.source)
-		if e != nil {
+	if changes.manageSkills {
+		if e = applyLinks(skills); e != nil {
 			return e
 		}
-		if e = os.Symlink(target, a.destination); e != nil {
-			return e
-		}
-		fmt.Printf("linked instructions %s -> %s\n", a.destination, target)
-		status = "linked"
 	}
-	for _, p := range []linkPlan{skills, resources, rules} {
-		if e = applyLinks(p); e != nil {
-			return e
+	if changes.manageAgents {
+		for _, p := range []linkPlan{resources, rules} {
+			if e = applyLinks(p); e != nil {
+				return e
+			}
 		}
 	}
 	mode := "marketplace"
-	if instructionsOnly {
+	if instructionsOnly || !changes.manageSkills {
 		mode = "none"
 	} else if syncSkills {
 		mode = "skills"
@@ -276,29 +280,15 @@ func prune(root, codex string) error {
 			}
 		}
 		for link, component := range links {
-			if !managedLink(link, root, component) {
-				continue
-			}
-			target, e := os.Readlink(link)
-			if e != nil {
-				return e
-			}
-			if !filepath.IsAbs(target) {
-				target = filepath.Join(filepath.Dir(link), target)
-			}
-			target, e = filepath.Abs(target)
-			if e != nil {
-				return e
-			}
-			rel, e := filepath.Rel(root, target)
-			if e != nil {
-				return e
-			}
-			name := strings.Split(rel, string(filepath.Separator))[0]
-			if removable[name] {
+			name, ok := managedGeneration(link, root, component)
+			if ok && removable[name] {
 				return fmt.Errorf("refusing to prune active Codex generation: %s (%s)", name, link)
 			}
 		}
+		if err := pruneTargets(root, remove); err != nil {
+			return err
+		}
+
 		for _, g := range remove {
 			if e = removeGeneration(g.path); e != nil {
 				return e
@@ -391,7 +381,7 @@ func copyTree(src, dst string) error {
 
 // reset backs up instructions and skills before removing links. Resource links
 // are removed only when they point into the legacy render directory.
-func reset(codex, legacy string) error {
+func reset(codex string, legacyRoots []string) error {
 	if e := validDir(codex, "Codex path"); e != nil {
 		return e
 	}
@@ -450,8 +440,11 @@ func reset(codex, legacy string) error {
 				target = filepath.Join(resources, target)
 			}
 			target, _ = filepath.Abs(target)
-			if within(target, legacy) {
-				resourceLinks = append(resourceLinks, path)
+			for _, legacy := range legacyRoots {
+				if within(target, legacy) {
+					resourceLinks = append(resourceLinks, path)
+					break
+				}
 			}
 		}
 	}
@@ -482,4 +475,109 @@ func reset(codex, legacy string) error {
 	}
 	fmt.Printf("reset agent-config: instructions_backed_up=%d skills_backed_up=%d skills_removed=%d resources_removed=%d destination=%s\n", ab, sb, len(skillLinks), len(resourceLinks), codex)
 	return nil
+}
+
+// prepareCodex checks destination conflicts before any harness is activated.
+func prepareCodex(gen, root string, snap snapshot, plan *renderPlan, dest runtimeDestinations) (func() error, error) {
+	c, ok := snap["codex"].(snapshotCodex)
+	if !ok {
+		return nil, fmt.Errorf("generation config has no codex mode")
+	}
+	manageSkills := c.Skills || c.Legacy.InstructionsOnly || (c.Plugin != "none" && c.Agents)
+	syncSkills := c.Skills && !c.Legacy.InstructionsOnly
+	if c.Agents || manageSkills || c.Legacy.RulesOnly {
+		if err := preflightHarnessTarget(root, gen, "codex", dest.Codex, plan); err != nil {
+			return nil, err
+		}
+	}
+	payload := harnessPayloadDir(gen, "codex")
+	target := filepath.Join(root, ".targets", "codex", targetHash(dest.Codex), filepath.Base(gen))
+	var changes syncPlan
+	changes.manageAgents, changes.manageSkills = c.Agents, manageSkills
+	var err error
+	if c.Legacy.RulesOnly {
+		changes.rules, err = planHarnessComponent(dest.Codex, payload, target, root, "codex", "rules", true)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		if c.Agents {
+			changes.agents, err = planHarnessInstructions(dest.Codex, target, root, "codex", "AGENTS.md")
+			if err != nil {
+				return nil, err
+			}
+			changes.resources, err = planHarnessComponent(dest.Codex, payload, target, root, "codex", "resources", true)
+			if err != nil {
+				return nil, err
+			}
+			changes.rules, err = planHarnessComponent(dest.Codex, payload, target, root, "codex", "rules", true)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if manageSkills {
+			changes.skills, err = planHarnessComponent(dest.Codex, payload, target, root, "codex", "skills", syncSkills)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	activatedPlan, err := targetPlan(plan, dest.Codex)
+	if err != nil {
+		return nil, err
+	}
+	if c.Plugin != "none" {
+		pluginPlan, err := projectPluginSkills(plan, c.PluginName)
+		if err != nil {
+			return nil, err
+		}
+		pluginPlan, err = targetPlan(pluginPlan, dest.Codex)
+		if err != nil {
+			return nil, err
+		}
+		if c.Plugin == "skills" && c.Skills {
+			pluginPlan = pluginWithoutGuidance(activatedPlan)
+		}
+		if _, err = inspectMarketplace(pluginPlan, dest.Marketplace, c.PluginName); err != nil {
+			return nil, err
+		}
+	}
+	return func() error {
+		if c.Agents || manageSkills || c.Legacy.RulesOnly {
+			var err error
+			target, activatedPlan, err = materializeHarnessTarget(root, gen, "codex", dest.Codex, plan)
+			if err != nil {
+				return err
+			}
+		}
+		if c.Legacy.RulesOnly {
+			return applyLinks(changes.rules)
+		}
+		if c.Plugin != "none" {
+			pluginPlan, err := projectPluginSkills(plan, c.PluginName)
+			if err != nil {
+				return err
+			}
+			pluginPlan, err = targetPlan(pluginPlan, dest.Codex)
+			if err != nil {
+				return err
+			}
+			if c.Plugin == "skills" && c.Skills {
+				pluginPlan = pluginWithoutGuidance(pluginPlan)
+			}
+			result, err := populateMarketplace(pluginPlan, dest.Marketplace, c.PluginName)
+			if err != nil {
+				return err
+			}
+			out, err := json.MarshalIndent(result, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(out))
+		}
+		if c.Agents || manageSkills {
+			return applySync(dest.Codex, target, activatedPlan, syncSkills, c.Legacy.InstructionsOnly, changes)
+		}
+		return nil
+	}, nil
 }
