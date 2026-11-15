@@ -44,6 +44,17 @@ Use `{{%_resources_%}}` for installed resources and `{{%_skills_%}}` for install
 
 Each source skill lives in its own directory. Its `SKILL.md.d` contains Markdown fragments, ordered by filename. A later section replaces an earlier fragment with the same filename; different filenames are combined. Any fragment can supply YAML frontmatter. The renderer merges frontmatter in filename order: nested mappings are combined, and later values replace earlier scalars or lists. The final frontmatter must contain a name matching the skill directory and a description. It appears first in the generated `SKILL.md`, followed by fragment bodies in filename order. YAML aliases are not supported in skill fragments. This lets a `00-` fragment add instructions before `10-skill.md`. The fragment directory is not copied into the output.
 
+An `AGENTS.md.d` or `SKILL.md.d` fragment can restrict itself to specific harnesses using YAML frontmatter. The supported harness names are `codex`, `opencode`, and `claude`:
+
+```markdown
+---
+harnesses: [codex, claude]
+---
+Instructions for Codex and Claude Code.
+```
+
+Without `harnesses`, a fragment applies to every harness. The list must be non-empty and contain known, distinct names. Selection happens before same-filename overrides, so a later fragment for Claude does not replace an earlier Codex fragment. The renderer removes `harnesses` from the output; other skill frontmatter still merges normally, while instruction fragment frontmatter is omitted from the generated instruction file. If all fragments of a skill are excluded and it has no complete `SKILL.md`, the skill is omitted for that harness. A complete source `SKILL.md` is not filtered by this setting.
+
 A later fragment can extend a skill without replacing its earlier supporting files. Supporting files such as references and scripts follow section precedence when they share a path. A source skill can also contain a complete `SKILL.md` for compatibility with existing section directories; a later complete `SKILL.md` replaces the earlier skill before subsequent fragments are applied.
 
 Inside a skill, `{{%_resources_%}}/group/file.md` becomes a path to `resources/group/file.md` within that skill. Paths are relative to the file containing the reference, so a file in `references/` uses `../resources/`. The renderer copies each referenced resource using the selected section's version. It also includes other known resources linked from copied Markdown files. A directory reference copies that directory; the bare placeholder copies all resources. Missing references and conflicts with files already in the skill stop the render. Source files remain unchanged.

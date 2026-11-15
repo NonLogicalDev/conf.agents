@@ -64,7 +64,7 @@ func discoverOpenCodePlugins(layers []string) (map[string]string, error) {
 
 // buildOpenCodePlan adds native plugins to the shared, destination-independent plan.
 func buildOpenCodePlan(sections []string, includePlugins bool) (*renderPlan, error) {
-	plan, err := buildPlan(sections, true)
+	plan, err := buildPlan(sections, true, "opencode")
 	if err != nil {
 		return nil, err
 	}

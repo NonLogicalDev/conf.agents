@@ -171,7 +171,78 @@ func validateSkillMetadataNode(node *yaml.Node) error {
 	return nil
 }
 
-func buildPlan(sections []string, includeGuidance bool) (*renderPlan, error) {
+// fragmentForHarness reads fragment metadata and removes the renderer-only selector.
+func fragmentForHarness(path, harness string) ([]byte, bool, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, false, err
+	}
+	if !utf8.Valid(b) {
+		return nil, false, fmt.Errorf("invalid UTF-8 in fragment: %s", path)
+	}
+	lines := strings.SplitAfter(string(b), "\n")
+	if len(lines) == 0 || strings.TrimSpace(lines[0]) != "---" {
+		return b, true, nil
+	}
+	end := 1
+	for end < len(lines) && strings.TrimSpace(lines[end]) != "---" && strings.TrimSpace(lines[end]) != "..." {
+		end++
+	}
+	if end == len(lines) {
+		return nil, false, fmt.Errorf("unterminated YAML frontmatter: %s", path)
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal([]byte(strings.Join(lines[1:end], "")), &doc); err != nil {
+		return nil, false, fmt.Errorf("invalid YAML frontmatter: %s: %w", path, err)
+	}
+	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
+		return nil, false, fmt.Errorf("YAML frontmatter must be a mapping: %s", path)
+	}
+	meta := doc.Content[0]
+	if err := validateSkillMetadataNode(meta); err != nil {
+		return nil, false, fmt.Errorf("invalid YAML frontmatter: %s: %w", path, err)
+	}
+	for i := 0; i < len(meta.Content); i += 2 {
+		if meta.Content[i].Value != "harnesses" {
+			continue
+		}
+		list := meta.Content[i+1]
+		if list.Kind != yaml.SequenceNode || len(list.Content) == 0 {
+			return nil, false, fmt.Errorf("harnesses must be a non-empty list: %s", path)
+		}
+		match := false
+		seen := map[string]bool{}
+		for _, item := range list.Content {
+			if item.Kind != yaml.ScalarNode || item.Tag != "!!str" {
+				return nil, false, fmt.Errorf("harnesses must contain harness names: %s", path)
+			}
+			if _, ok := harnessRegistry()[item.Value]; !ok {
+				return nil, false, fmt.Errorf("unknown harness %q in %s", item.Value, path)
+			}
+			if seen[item.Value] {
+				return nil, false, fmt.Errorf("duplicate harness %q in %s", item.Value, path)
+			}
+			seen[item.Value] = true
+			match = match || item.Value == harness
+		}
+		if !match {
+			return nil, false, nil
+		}
+		meta.Content = append(meta.Content[:i], meta.Content[i+2:]...)
+		body := strings.Join(lines[end+1:], "")
+		if len(meta.Content) == 0 {
+			return []byte(body), true, nil
+		}
+		y, err := yaml.Marshal(meta)
+		if err != nil {
+			return nil, false, fmt.Errorf("cannot render frontmatter: %s: %w", path, err)
+		}
+		return []byte("---\n" + string(y) + "---\n" + body), true, nil
+	}
+	return b, true, nil
+}
+
+func buildPlan(sections []string, includeGuidance bool, harness string) (*renderPlan, error) {
 	p := &renderPlan{skills: map[string]string{}, resources: map[string]string{}, dirs: map[string]bool{"skills": true, "resources": true}, files: map[string]string{}, contents: map[string][]byte{}}
 	layerSources := map[string]string{}
 	for index, root := range sections {
@@ -274,6 +345,13 @@ func buildPlan(sections []string, includeGuidance bool) (*renderPlan, error) {
 								return nil, fmt.Errorf("symlinked skill fragments are not supported: %s", fragmentPath)
 							}
 							if fragment.Type().IsRegular() {
+								_, include, err := fragmentForHarness(fragmentPath, harness)
+								if err != nil {
+									return nil, err
+								}
+								if !include {
+									continue
+								}
 								skillFragments[d.Name()][fragment.Name()] = fragmentPath
 							}
 						}
@@ -340,6 +418,13 @@ func buildPlan(sections []string, includeGuidance bool) (*renderPlan, error) {
 						return nil, fmt.Errorf("symlinked config fragments are not supported: %s", path)
 					}
 					if d.Type().IsRegular() {
+						_, include, err := fragmentForHarness(path, harness)
+						if err != nil {
+							return nil, err
+						}
+						if !include {
+							continue
+						}
 						fragments[d.Name()] = path
 						rel, _ := filepath.Rel(layer, path)
 						fragmentSources[d.Name()] = filepath.Join(layerSources[layer], filepath.Base(layer), rel)
@@ -351,21 +436,35 @@ func buildPlan(sections []string, includeGuidance bool) (*renderPlan, error) {
 	parts := []string{marker, "# Global agent instructions"}
 	for _, name := range sortedKeys(fragments) {
 		path := fragments[name]
-		b, e := os.ReadFile(path)
+		b, _, e := fragmentForHarness(path, harness)
 		if e != nil {
 			return nil, e
 		}
 		if !utf8.Valid(b) {
 			return nil, fmt.Errorf("invalid UTF-8 in fragment: %s", path)
 		}
+		text := strings.TrimSpace(string(b))
+		lines := strings.Split(text, "\n")
+		if len(lines) > 0 && strings.TrimSpace(lines[0]) == "---" {
+			for i := 1; i < len(lines); i++ {
+				if strings.TrimSpace(lines[i]) == "---" || strings.TrimSpace(lines[i]) == "..." {
+					text = strings.TrimSpace(strings.Join(lines[i+1:], "\n"))
+					break
+				}
+			}
+		}
 		parts = append(parts, "<!-- source: "+filepath.ToSlash(fragmentSources[name])+" -->")
-		if text := strings.TrimSpace(string(b)); text != "" {
+		if text != "" {
 			parts = append(parts, text)
 		}
 		p.fragments++
 	}
 	p.agents = strings.Join(parts, "\n\n") + "\n"
 	for _, name := range sortedKeys(p.skills) {
+		if skillBases[name] == "" && len(skillFragments[name]) == 0 {
+			delete(p.skills, name)
+			continue
+		}
 		dst := filepath.Join("skills", name)
 		p.dirs[dst] = true
 		fragmentMap := skillFragments[name]
@@ -382,7 +481,13 @@ func buildPlan(sections []string, includeGuidance bool) (*renderPlan, error) {
 			var bodies []string
 			var singleOriginal []byte
 			for _, path := range paths {
-				b, err := os.ReadFile(path)
+				var b []byte
+				var err error
+				if path == skillBases[name] {
+					b, err = os.ReadFile(path)
+				} else {
+					b, _, err = fragmentForHarness(path, harness)
+				}
 				if err != nil {
 					return nil, err
 				}

@@ -25,6 +25,8 @@ renderer="/tmp/agentbld"  # Or scripts/reconcile-config.
 
 Put each source skill's ordered Markdown fragments under `skills/<skill>/SKILL.md.d/`. The renderer progressively merges YAML frontmatter from the fragments and places the result before the ordered fragment bodies; later values replace earlier scalars and lists. Fragments with the same filename use the version from the later section. A complete source `SKILL.md` remains supported. The rendered skill contains one `SKILL.md` and no fragment directory.
 
+To select harnesses for an instruction or skill fragment, put `harnesses: [codex, claude]` in its YAML frontmatter. Omit the key to include the fragment for every harness. Available names are `codex`, `opencode`, and `claude`. Filtering happens before section overrides, and the selector is removed from the rendered output. See the [repository README](../../README.md) for details.
+
 Repeat `--sections-dir` to combine directories from separate repositories. Directories are processed in the order supplied, and sections within each directory are processed in lexicographic order; later sections take precedence. The legacy `--config-dir` accepts a repository root and cannot be mixed with `--sections-dir`.
 
 Run `"$renderer" --help` for commands and `"$renderer" modes` for supported harness modes and examples. Use `--mode=<harness>[:<JSON object>]` when rendering; each harness defines its own options. `render` and `check` use section sources. Numbered sync uses the saved generation and needs no section source. `--render-dir` defaults to `${XDG_STATE_HOME:-$HOME/.local/state}/agentbld`; `--codex-dir` defaults to `${CODEX_HOME:-$HOME/.codex}`.

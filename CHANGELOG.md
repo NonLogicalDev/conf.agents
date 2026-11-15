@@ -6,6 +6,7 @@ Notable changes to this project are recorded here. The format follows [Keep a Ch
 
 ### Added
 
+- Select instruction and skill fragments by harness using a `harnesses` list in their YAML frontmatter.
 - Generate local Claude Code plugins and marketplaces with configurable plugin names, optional guidance, and independent sync destinations.
 - Assemble skill instructions from ordered `SKILL.md.d` fragments across sections, with later sections overriding matching filenames and frontmatter merging in order.
 

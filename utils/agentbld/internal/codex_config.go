@@ -24,7 +24,7 @@ func discoverCodexRules(dir string, rules map[string]string) error {
 
 // buildCodexPlan adds Codex rules and bundles resources in the source plan.
 func buildCodexPlan(sections []string, includeGuidance, includeRules bool, namespace, prefix string) (*renderPlan, error) {
-	plan, err := buildPlan(sections, includeGuidance)
+	plan, err := buildPlan(sections, includeGuidance, "codex")
 	if err != nil {
 		return nil, err
 	}

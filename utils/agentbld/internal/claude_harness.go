@@ -24,7 +24,7 @@ func claudeHandler() harnessHandler {
 			if !ok {
 				return nil, nil, fmt.Errorf("invalid Claude mode")
 			}
-			plan, err := buildPlan(sections, !(mode.plugin && !mode.includeGuidance && !mode.skills))
+			plan, err := buildPlan(sections, !(mode.plugin && !mode.includeGuidance && !mode.skills), "claude")
 			if err != nil {
 				return nil, nil, err
 			}
