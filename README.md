@@ -75,6 +75,8 @@ Changing the state root does not migrate existing generations or retarget active
 
 ## Render and verify
 
+The configuration builder is a Go program in `utils/agentbld`. Install Go 1.24 or later and provide a writable Go build cache. When the dependencies in `go.mod` are not cached, Go also needs network access to download them. The `scripts/reconcile-config` launcher builds the program in a temporary directory on each invocation and runs it from the caller's working directory. To build a reusable binary instead, run `go -C utils/agentbld build -o /tmp/agentbld .` and set `renderer=/tmp/agentbld` below.
+
 Run these commands from either repository checkout:
 
 ```bash
@@ -107,11 +109,11 @@ Syncing updates only links managed by the renderer. It preserves unrelated skill
 
 ### Skill marketplace mode
 
-Add `--skill-marketplace` to `sync` to build the personal skill package instead of installing skill links. The renderer owns the plugin manifest and catalog format; it does not load scripts from installed Codex skills. This mode requires PyYAML, which `ajust agents-sync` supplies.
+Add `--skill-marketplace` to `sync` to build the personal skill package instead of installing skill links. The renderer owns the plugin manifest and catalog format; it does not load scripts from installed Codex skills. The Go builder validates skill frontmatter without a separate Python dependency.
 
 Before replacing a package, the renderer validates skill frontmatter and the catalog, checks for local package edits and unsafe symlinks, and preserves other catalog entries and existing policy. Every successful build increments the plugin patch version. Building does not install or publish the plugin.
 
-Use `--instructions-only` for DevBoxes. It updates instructions and resources, removes only managed skill links, and leaves marketplace files untouched. It requires neither PyYAML nor installed skills. The two modes cannot be combined.
+Use `--instructions-only` for DevBoxes. It updates instructions and resources, removes only managed skill links, and leaves marketplace files untouched. It does not require installed skills. The two modes cannot be combined.
 
 ## Prune old generations
 
@@ -124,7 +126,7 @@ Remove unused generations while retaining the five newest:
   --codex-dir "${CODEX_HOME:-$HOME/.codex}"
 ```
 
-Pruning refuses to remove a generation referenced by active instructions, skills, or resources. It also requires `latest` to point to the newest generation before removing older state.
+Pruning refuses to remove a generation referenced by active instructions, skills, resources, or rules. It also requires `latest` to point to the newest generation before removing older state.
 
 ## Reset explicitly
 
@@ -139,7 +141,7 @@ Reset installed configuration only when you intend to remove its current links:
 
 Reset backs up the existing `AGENTS.md` and the complete `skills/` directory as `~/.codex/skills.<epoch>.bak`. When both backups are needed, they use the same timestamp. It then removes stale direct skill links and only resource links managed by the previous generation root. Live skill directories, regular files, unrelated resource links, and nested links remain untouched. Reset does not render or activate another generation.
 
-A full source workspace may additionally provide `just agents-render`, `just agents-check`, `just agents-sync`, `just agents-prune`, `just agents-reset`, and `just agents-test`. Those convenience commands depend on that workspace's Justfile; the direct renderer commands above work in either checkout.
+Run the Go tests with `go -C utils/agentbld test ./...`.
 
 ## Codex command rules
 
