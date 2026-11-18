@@ -2,6 +2,64 @@
 
 `agentbld` combines layered agent configuration into read-only generations. Its rendering code is mostly independent of a particular agent harness; activation supports Codex, OpenCode, and Claude Code, with local plugin marketplaces for Codex and Claude Code. Rendering and activation are separate operations. See the [repository README](../../README.md) for the source layout and placeholder rules.
 
+## Configuration layout
+
+Source sections provide the instructions, skills, resources, plugins, and marketplaces that agentbld combines. Each section can omit components it does not need.
+
+```text
+sections/
+└── {nn}-{ns}-{suffix}/
+    ├── AGENTS.md.d/
+    │   └── {order}-{section}.md
+    ├── skills/
+    │   └── {skill-name}/
+    │       ├── SKILL.md.d/
+    │       │   ├── 10-skill.md
+    │       │   └── {order}-{fragment}.md
+    │       ├── references/
+    │       └── scripts/
+    ├── resources/
+    │   └── {resource-group}/
+    │       └── {resource-name}
+    ├── opencode/plugins/
+    │   └── {plugin-name}.js
+    └── marketplace/
+        ├── .agents/
+        │   └── plugins/
+        │       └── marketplace.json
+        └── plugins/
+            └── {plugin-name}/
+                ├── .codex-plugin/
+                │   └── plugin.json
+                └── skills/
+                    └── {skill-name}/
+                        └── SKILL.md
+```
+
+Rendered generations are stored under `${XDG_STATE_HOME:-$HOME/.local/state}/agentbld/` by default. Each generation contains the selected harnesses; `latest` points to the newest generation.
+
+```text
+${XDG_STATE_HOME:-$HOME/.local/state}/agentbld/
+├── latest -> {yyyy}-{mm}-{dd}__{NN}/
+└── {yyyy}-{mm}-{dd}__{NN}/
+    ├── config.json
+    ├── codex/           # If selected
+    │   ├── AGENTS.md
+    │   ├── skills/
+    │   ├── plugin-skills/  # If a Codex plugin is selected
+    │   ├── resources/
+    │   └── rules/
+    ├── opencode/        # If selected
+    │   ├── AGENTS.md
+    │   ├── skills/
+    │   ├── resources/
+    │   └── plugins/
+    └── claude/          # If selected
+        ├── CLAUDE.md
+        ├── skills/
+        └── resources/
+```
+
 ## Build and run
 
 Go 1.24 or later is required. The first build may need network access to download the modules in `go.mod` and a writable Go build cache.
