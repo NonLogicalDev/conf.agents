@@ -20,13 +20,10 @@ Do not switch branches, rewrite history, push, or publish unless the user asks. 
 
 ## Write the subject
 
-Use this subject for every checkpoint created with this skill.
-
-```text
-agent:checkpoint - <short note>
-```
-
-Replace `<short note>` with a few words describing the saved work. For example, `agent:checkpoint - save parser fix and regression test`.
+- For ordinary Git, stage the changes that belong to the checkpoint. Use [git-checkpoint-save](scripts/git-checkpoint-save) after verifying the index contains only those changes. The script commits what is staged.
+- When the project requires a different commit command, pass `--subject-only` to the script and use its output with the project’s command.
+- Pass the user’s note as one quoted argument when they supply it. The default role is `agent`. Pass `--role <role>` only when the user requests a different role.
+- With a note, the subject is `checkpoint:agent - <short note>`. Without one, it uses local time in `YYYY-DD-MMThh-mm-ss` order, for example `checkpoint:agent - 2031-17-02T14-05-06`.
 
 ## Tests
 

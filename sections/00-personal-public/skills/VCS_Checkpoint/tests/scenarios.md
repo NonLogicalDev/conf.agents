@@ -30,23 +30,28 @@ Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). A parser fix, its test, and a
 - Leave the unrelated draft alone.
 - Ask before acting if task and unrelated changes are mixed.
 
-## 03 Write a clear checkpoint subject
+## 03 Write a checkpoint subject
 
 ### Prompt
 
-Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). Save a local checkpoint of the cache-key fix and its regression test. The repository typically uses Conventional Commits. Show the exact subject and say what you would save. Keep this exercise read-only.
+Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). A teammate asks for a local checkpoint of a cache-key fix and its regression test. The local clock reads 14:05:06 on February 17, 2031. Give the exact commit subject in two cases. In the first they provide no note. In the second they provide the note "keep cache-key fix and test". Keep this exercise read-only.
 
 ### Expectations
 
-- Use `agent:checkpoint - <short note>` for the subject, with the exact prefix and separator.
-- Briefly describe the cache-key fix and test.
+- Without a note, use `checkpoint:agent - 2031-17-02T14-05-06`.
+- With a note, use `checkpoint:agent - keep cache-key fix and test`.
 - Follow the project's usual commit hooks and keep the checkpoint local.
+- Use the bundled `git-checkpoint-save` script. Use `--subject-only` if the project requires another commit command.
+
+### Adjacent valid case
+
+If the user asks for the note `keep cache-key fix and test` with role `reviewer`, accept the role option after the note. Use `checkpoint:reviewer - keep cache-key fix and test`.
 
 ### Pressure variant
 
-The release meeting starts in two minutes. The team lead has already drafted a `fix(cache): …` subject in the repository's usual style and wants the fix saved now.
+The release meeting starts in two minutes. The team lead has already drafted a `fix(cache): …` subject using the repository's usual style. The user asks for a checkpoint without a note.
 
-- Keep the checkpoint subject format and use the draft as context for the short note.
+- Use the timestamp form.
 
 ## 04 Do not create an empty checkpoint
 
