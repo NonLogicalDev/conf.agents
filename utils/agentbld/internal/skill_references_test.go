@@ -23,13 +23,13 @@ func TestSkillReferencesResolveForTargetsAndPlugin(t *testing.T) {
 		"--mode=opencode", "--mode=claude", "--codex-dir", f.codex, "--opencode-dir", open, "--claude-dir", claude, "--codex-marketplace-home", market)
 	generation := f.latest()
 	for path, want := range map[string]string{
-		"codex/AGENTS.md":                             "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		"codex/skills/Agent_Guidance/SKILL.md":        "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		"codex/plugin-skills/Agent_Guidance/SKILL.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		"opencode/AGENTS.md":                          "[Tasker_Stream](skill://local/Tasker_Stream)",
-		"opencode/skills/Agent_Guidance/SKILL.md":     "[Tasker_Stream](skill://local/Tasker_Stream)",
-		"claude/CLAUDE.md":                            "[/Tasker_Stream](skill://local/Tasker_Stream)",
-		"claude/skills/Agent_Guidance/SKILL.md":       "[/Tasker_Stream](skill://local/Tasker_Stream)",
+		"codex/AGENTS.md":                               "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		"codex/skills/Agent_Guidance/SKILL.md":          "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		"codex/plugin-skillset/Agent_Guidance/SKILL.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		"opencode/AGENTS.md":                            "[Tasker_Stream](skill://local/Tasker_Stream)",
+		"opencode/skills/Agent_Guidance/SKILL.md":       "[Tasker_Stream](skill://local/Tasker_Stream)",
+		"claude/CLAUDE.md":                              "[/Tasker_Stream](skill://local/Tasker_Stream)",
+		"claude/skills/Agent_Guidance/SKILL.md":         "[/Tasker_Stream](skill://local/Tasker_Stream)",
 	} {
 		got := f.read(filepath.Join(generation, path))
 		if !strings.Contains(got, want) || strings.Contains(got, link) {
@@ -37,14 +37,14 @@ func TestSkillReferencesResolveForTargetsAndPlugin(t *testing.T) {
 		}
 	}
 	for path, want := range map[string]string{
-		"codex/skills/Alpha/SKILL.md":        "[$Tasker_Stream](skill://local/Tasker_Stream)",
-		"codex/plugin-skills/Alpha/SKILL.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		"codex/plugin-skills/Alpha/notes.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		"codex/skills/Alpha/notes.md":        "[$Tasker_Stream](skill://local/Tasker_Stream)",
-		"opencode/skills/Alpha/SKILL.md":     "[Tasker_Stream](skill://local/Tasker_Stream)",
-		"opencode/skills/Alpha/notes.md":     "[Tasker_Stream](skill://local/Tasker_Stream)",
-		"claude/skills/Alpha/SKILL.md":       "[/Tasker_Stream](skill://local/Tasker_Stream)",
-		"claude/skills/Alpha/notes.md":       "[/Tasker_Stream](skill://local/Tasker_Stream)",
+		"codex/skills/Alpha/SKILL.md":          "[$Tasker_Stream](skill://local/Tasker_Stream)",
+		"codex/plugin-skillset/Alpha/SKILL.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		"codex/plugin-skillset/Alpha/notes.md": "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		"codex/skills/Alpha/notes.md":          "[$Tasker_Stream](skill://local/Tasker_Stream)",
+		"opencode/skills/Alpha/SKILL.md":       "[Tasker_Stream](skill://local/Tasker_Stream)",
+		"opencode/skills/Alpha/notes.md":       "[Tasker_Stream](skill://local/Tasker_Stream)",
+		"claude/skills/Alpha/SKILL.md":         "[/Tasker_Stream](skill://local/Tasker_Stream)",
+		"claude/skills/Alpha/notes.md":         "[/Tasker_Stream](skill://local/Tasker_Stream)",
 	} {
 		got := f.read(filepath.Join(generation, path))
 		if !strings.Contains(got, want) || strings.Contains(got, link) {
@@ -97,6 +97,47 @@ func TestSkillReferencesResolveForTargetsAndPlugin(t *testing.T) {
 	}
 }
 
+func TestSyncSavedGenerationWithOldPluginDirectory(t *testing.T) {
+	f := modeFixture(t)
+	f.put(f.layer, "skills/Alpha/SKILL.md", "---\nname: Alpha\ndescription: Example\n---\n[$@:Alpha](skill://@/Alpha)\n")
+	f.run("render", 0, "--mode", `codex:{"plugin":"full","plugin_name":"my-skills","skills":true}`)
+	gen := f.latest()
+	codexPayload := filepath.Join(gen, "codex")
+
+	// Recreate the layout and snapshot keys written before the rename.
+	if err := os.Chmod(codexPayload, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(filepath.Join(codexPayload, "plugin-skillset"), filepath.Join(codexPayload, "plugin-skills")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(codexPayload, 0555); err != nil {
+		t.Fatal(err)
+	}
+	config := filepath.Join(gen, "config.json")
+	oldConfig := strings.ReplaceAll(f.read(config), "\"plugin-skillset/", "\"plugin-skills/")
+	if err := os.Chmod(config, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(config, []byte(oldConfig), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(config, 0444); err != nil {
+		t.Fatal(err)
+	}
+
+	market := filepath.Join(f.home, ".agents", "plugins")
+	lifecycleRun(t, f, 0, "sync", lifecycleOrdinal(t, gen), "--render-dir", f.render,
+		"--codex-dir", f.codex, "--codex-marketplace-home", market)
+	if got := f.read(filepath.Join(market, "my-skills", "skills", "Alpha", "SKILL.md")); !strings.Contains(got, "skill://my-skills/Alpha") {
+		t.Fatalf("synced plugin skill reference: %s", got)
+	}
+	if got := f.read(filepath.Join(f.codex, "skills", "Alpha", "SKILL.md")); !strings.Contains(got, "skill://local/Alpha") {
+		t.Fatalf("synced standalone skill reference: %s", got)
+	}
+	f.absent(filepath.Join(gen, "codex", "plugin-skillset"))
+}
+
 func TestStandaloneCodexReferencesUseLocal(t *testing.T) {
 	f := modeFixture(t)
 	link := "[$@:Tasker_Stream](skill://@/Tasker_Stream)"
@@ -140,11 +181,11 @@ func TestSkillReferencesSkillsPluginOmitsGuidanceFromGeneration(t *testing.T) {
 	mode := `codex:{"agents":true,"skills":true,"plugin":"skills","plugin_name":"my-skills"}`
 	f.run("sync", 0, "--mode", mode)
 	gen := f.latest()
-	f.absent(filepath.Join(gen, "codex/plugin-skills/Agent_Guidance"))
+	f.absent(filepath.Join(gen, "codex/plugin-skillset/Agent_Guidance"))
 	f.absent(filepath.Join(f.home, ".agents/plugins/my-skills/skills/Agent_Guidance"))
 	for path, want := range map[string]string{
-		filepath.Join(gen, "codex/plugin-skills/Alpha/SKILL.md"): "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-		filepath.Join(gen, "codex/skills/Alpha/SKILL.md"):        "[$Tasker_Stream](skill://local/Tasker_Stream)",
+		filepath.Join(gen, "codex/plugin-skillset/Alpha/SKILL.md"): "[$my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+		filepath.Join(gen, "codex/skills/Alpha/SKILL.md"):          "[$Tasker_Stream](skill://local/Tasker_Stream)",
 	} {
 		if got := f.read(path); !strings.Contains(got, want) {
 			t.Errorf("%s: %s", path, got)

@@ -35,8 +35,9 @@ func TestFragmentHarnessSelection(t *testing.T) {
 			if !strings.Contains(skill, skillWant) || strings.Contains(skill, "harnesses:") {
 				t.Fatalf("skill: %s", skill)
 			}
+			f.absent(filepath.Join(root, "plugin-skills"))
 			if harness != "opencode" {
-				pluginSkill := f.read(filepath.Join(root, "plugin-skills/Alpha/SKILL.md"))
+				pluginSkill := f.read(filepath.Join(root, "plugin-skillset/Alpha/SKILL.md"))
 				if !strings.Contains(pluginSkill, skillWant) || strings.Contains(pluginSkill, "harnesses:") {
 					t.Fatalf("plugin skill: %s", pluginSkill)
 				}

@@ -280,6 +280,12 @@ func buildPlan(sections []string, includeGuidance bool, harness string) (*render
 	skillBases := map[string]string{}
 	skillAssetLayers := map[string][]string{}
 	for _, layer := range p.layers {
+		marketplace := filepath.Join(layer, "marketplace")
+		if _, err := os.Lstat(marketplace); err == nil {
+			return nil, fmt.Errorf("section marketplace input is unsupported at %s. Put plugin skills in the section's skills/ directory", marketplace)
+		} else if !os.IsNotExist(err) {
+			return nil, err
+		}
 		for _, component := range []string{"skills", "resources", "AGENTS.md.d"} {
 			dir := filepath.Join(layer, component)
 			if isLink(dir) {

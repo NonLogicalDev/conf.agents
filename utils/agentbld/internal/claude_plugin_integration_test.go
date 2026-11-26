@@ -25,18 +25,18 @@ func TestClaudePluginGenerationUsesNativeSkillReferences(t *testing.T) {
 			lifecycleRun(t, f, 0, "render", "--sections-dir", filepath.Join(f.config, "sections"), "--render-dir", f.render, "--mode", tc.mode)
 			gen := f.latest()
 			for path, want := range map[string]string{
-				"claude/CLAUDE.md":                    "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-				"claude/skills/Alpha/SKILL.md":        "[/Tasker_Stream](skill://local/Tasker_Stream)",
-				"claude/skills/Alpha/notes.md":        "[/Tasker_Stream](skill://local/Tasker_Stream)",
-				"claude/plugin-skills/Alpha/SKILL.md": "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
-				"claude/plugin-skills/Alpha/notes.md": "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+				"claude/CLAUDE.md":                      "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+				"claude/skills/Alpha/SKILL.md":          "[/Tasker_Stream](skill://local/Tasker_Stream)",
+				"claude/skills/Alpha/notes.md":          "[/Tasker_Stream](skill://local/Tasker_Stream)",
+				"claude/plugin-skillset/Alpha/SKILL.md": "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
+				"claude/plugin-skillset/Alpha/notes.md": "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)",
 			} {
 				got := f.read(filepath.Join(gen, path))
 				if !strings.Contains(got, want) || strings.Contains(got, sourceLink) {
 					t.Errorf("%s: %s", path, got)
 				}
 			}
-			guidance := filepath.Join(gen, "claude/plugin-skills/Agent_Guidance/SKILL.md")
+			guidance := filepath.Join(gen, "claude/plugin-skillset/Agent_Guidance/SKILL.md")
 			if tc.guidance {
 				if got := f.read(guidance); !strings.Contains(got, "[/my-skills:Tasker_Stream](skill://my-skills/Tasker_Stream)") {
 					t.Errorf("plugin guidance: %s", got)
@@ -73,7 +73,7 @@ func TestClaudePluginHistoricalSyncToIndependentMarketplaces(t *testing.T) {
 	lifecycleRun(t, f, 0, "render", "--sections-dir", filepath.Join(f.config, "sections"), "--render-dir", f.render, "--mode", mode)
 	generation := f.latest()
 	ordinal := lifecycleOrdinal(t, generation)
-	original := f.read(filepath.Join(generation, "claude/plugin-skills/Alpha/SKILL.md"))
+	original := f.read(filepath.Join(generation, "claude/plugin-skillset/Alpha/SKILL.md"))
 	lifecycleRun(t, f, 0, "check", "--sections-dir", filepath.Join(f.config, "sections"), "--render-dir", f.render, "--mode", mode)
 	f.put(f.layer, "skills/Alpha/SKILL.md", "---\nname: Alpha\ndescription: Example\n---\nversion two\n")
 	if err := os.RemoveAll(f.config); err != nil {
@@ -104,7 +104,7 @@ func TestClaudePluginHistoricalSyncToIndependentMarketplaces(t *testing.T) {
 			t.Errorf("Claude settings changed: %q", got)
 		}
 	}
-	if got := f.read(filepath.Join(generation, "claude/plugin-skills/Alpha/SKILL.md")); got != original {
+	if got := f.read(filepath.Join(generation, "claude/plugin-skillset/Alpha/SKILL.md")); got != original {
 		t.Fatal("sync changed immutable generation")
 	}
 }

@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const pluginSkillsetDir = "plugin-skillset"
+
 // Portable skill links are resolved while rendering each harness payload.
 var portableSkillReference = regexp.MustCompile(`\[\$@:([A-Za-z0-9_-]+)\]\(skill://@/([A-Za-z0-9_-]+)\)`)
 
@@ -58,7 +60,7 @@ func resolvedHarnessTarget(p *renderPlan, destination, harness string, snap snap
 	return resolvePlanReferences(resolved, namespace, instructionsPrefix, "local", filesPrefix)
 }
 
-// renderSkillReferences stores the two Codex skill variants independently so
+// renderSkillReferences stores the standalone and plugin skill variants independently so
 // plugin and standalone references are fully resolved before activation.
 func renderSkillReferences(p *renderPlan, harness, pluginName string, pluginGuidance bool) (*renderPlan, error) {
 	localPrefix := ""
@@ -91,7 +93,7 @@ func renderSkillReferences(p *renderPlan, harness, pluginName string, pluginGuid
 	for key, value := range p.dirs {
 		local.dirs[key] = value
 	}
-	local.dirs["plugin-skills"] = true
+	local.dirs[pluginSkillsetDir] = true
 	for rel := range p.dirs {
 		if rel == "skills" || !within(rel, "skills") {
 			continue
@@ -100,7 +102,7 @@ func renderSkillReferences(p *renderPlan, harness, pluginName string, pluginGuid
 		if !pluginGuidance && (part == "Agent_Guidance" || strings.HasPrefix(part, "Agent_Guidance"+string(filepath.Separator))) {
 			continue
 		}
-		local.dirs[filepath.Join("plugin-skills", part)] = true
+		local.dirs[filepath.Join(pluginSkillsetDir, part)] = true
 	}
 	for rel, source := range p.files {
 		if !within(rel, "skills") || rel == "skills" {
@@ -110,7 +112,7 @@ func renderSkillReferences(p *renderPlan, harness, pluginName string, pluginGuid
 		if !pluginGuidance && (part == "Agent_Guidance" || strings.HasPrefix(part, "Agent_Guidance"+string(filepath.Separator))) {
 			continue
 		}
-		target := filepath.Join("plugin-skills", part)
+		target := filepath.Join(pluginSkillsetDir, part)
 		local.files[target] = source
 		if data, ok := plugin.contents[rel]; ok {
 			local.contents[target] = data
@@ -119,10 +121,22 @@ func renderSkillReferences(p *renderPlan, harness, pluginName string, pluginGuid
 	return local, nil
 }
 
+// renderedPluginSkillset also recognizes saved generations from before the rename.
+func renderedPluginSkillset(p *renderPlan) string {
+	if p.dirs[pluginSkillsetDir] {
+		return pluginSkillsetDir
+	}
+	if p.dirs["plugin-skills"] {
+		return "plugin-skills"
+	}
+	return ""
+}
+
 // projectPluginSkills replaces standalone skills with the rendered plugin copy.
-// A missing plugin-skills directory denotes an older portable generation.
+// Generations without a separate plugin copy use portable skill links.
 func projectPluginSkills(p *renderPlan, namespace string) (*renderPlan, error) {
-	if !p.dirs["plugin-skills"] {
+	skillset := renderedPluginSkillset(p)
+	if skillset == "" {
 		return resolvePlanReferences(p, namespace, "$"+namespace+":", namespace, "$"+namespace+":")
 	}
 	result := *p
@@ -131,11 +145,11 @@ func projectPluginSkills(p *renderPlan, namespace string) (*renderPlan, error) {
 	result.contents = map[string][]byte{}
 	result.fileModes = map[string]os.FileMode{}
 	for dir := range p.dirs {
-		if dir == "skills" || within(dir, "skills") || dir == "plugin-skills" {
+		if within(dir, "skills") || dir == skillset {
 			continue
 		}
-		if within(dir, "plugin-skills") {
-			part, _ := filepath.Rel("plugin-skills", dir)
+		if within(dir, skillset) {
+			part, _ := filepath.Rel(skillset, dir)
 			result.dirs[filepath.Join("skills", part)] = true
 		} else {
 			result.dirs[dir] = true
@@ -146,8 +160,8 @@ func projectPluginSkills(p *renderPlan, namespace string) (*renderPlan, error) {
 			continue
 		}
 		target := rel
-		if within(rel, "plugin-skills") {
-			part, _ := filepath.Rel("plugin-skills", rel)
+		if within(rel, skillset) {
+			part, _ := filepath.Rel(skillset, rel)
 			target = filepath.Join("skills", part)
 		}
 		result.files[target] = src
@@ -169,18 +183,19 @@ func projectPluginSkills(p *renderPlan, namespace string) (*renderPlan, error) {
 
 // targetWithoutPluginSkills prevents the plugin-only copy leaking into a harness target.
 func targetWithoutPluginSkills(p *renderPlan) *renderPlan {
-	if !p.dirs["plugin-skills"] {
+	skillset := renderedPluginSkillset(p)
+	if skillset == "" {
 		return p
 	}
 	result := *p
 	result.dirs, result.files, result.contents, result.fileModes = map[string]bool{}, map[string]string{}, map[string][]byte{}, map[string]os.FileMode{}
 	for key, value := range p.dirs {
-		if !within(key, "plugin-skills") {
+		if !within(key, skillset) {
 			result.dirs[key] = value
 		}
 	}
 	for key, value := range p.files {
-		if within(key, "plugin-skills") {
+		if within(key, skillset) {
 			continue
 		}
 		result.files[key] = value

@@ -28,7 +28,7 @@ Notable changes to this project are recorded here. The format follows [Keep a Ch
 
 - Store this repository’s skill instructions in `SKILL.md.d` directories; generated skills retain a single `SKILL.md`.
 
-- Replaced the Python configuration renderer with the Go `agentbld` command, using Kong for command-line parsing. The `scripts/reconcile-config` launcher retains the existing entry point.
+- Replaced the Python configuration renderer with the Go `agentbld` command, using Kong for command-line parsing.
 - Organized the builder's implementation under `internal/` and prefixed Codex-specific filenames with `codex_`.
 - Modeled each builder operation as a Kong command with contextual help. Rendering selects the harness configuration; numbered sync uses the saved generation.
 - Default rendered generations to `${XDG_STATE_HOME:-$HOME/.local/state}/agentbld` and the Codex destination to `${CODEX_HOME:-$HOME/.codex}`; both paths can be overridden with flags.

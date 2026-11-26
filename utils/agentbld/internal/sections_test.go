@@ -113,3 +113,15 @@ func TestSectionsResourceFileDirectoryConflict(t *testing.T) {
 		t.Fatalf("resource = %q", got)
 	}
 }
+
+func TestSectionsRejectMarketplaceInput(t *testing.T) {
+	f := newContractFixture(t)
+	f.put(f.layer, "marketplace/.agents/plugins/marketplace.json", "{}")
+	out := f.run("sync", 2, "--mode", `codex:{"plugin":"skills"}`)
+	if !strings.Contains(out, filepath.Join(f.layer, "marketplace")) || !strings.Contains(out, "skills/") {
+		t.Fatalf("expected an error with the source path and replacement directory, got %s", out)
+	}
+	f.absent(f.render)
+	f.absent(f.codex)
+	f.absent(filepath.Join(f.home, ".agents", "plugins"))
+}
