@@ -9,10 +9,10 @@ Layered instructions, skills, and resources for Codex, OpenCode, and Claude Code
 - **Go** — 1.24 or later, with a writable build cache. Uncached modules also need network access.
 - **PATH** — add `$GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset.
 
-From the repository root, install, render, and check. See [run or install](utils/agentbld/README.md#run-or-install).
+From the repository root, install, render, and check. See [run or install][agentbld-install].
 
 ```sh
-go install github.com/NonLogicalDev/conf.agents/utils/agentbld@main
+go install github.com/NonLogicalDev/tool.agentbld/cmd/agentbld@main
 
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/agentbld"
 agentbld render --sections-dir "$PWD/sections" --render-dir "$state_root"
@@ -54,7 +54,7 @@ agentbld sync 2 --render-dir "$state_root" --mode=claude --claude-dir /path/to/c
 - Use `--profile default` to select `default.json`. Sync without `--profile` uses regular flags and defaults.
 - Pass the generation ordinal each time. Explicit flags override saved settings.
 - Find names with `agentbld profile list` and inspect settings with `agentbld profile show NAME`.
-- See [sync profiles](utils/agentbld/README.md#sync-profiles) for the file format and precedence.
+- See [sync profiles][agentbld-profiles] for the file format and precedence.
 
 ## Source sections
 
@@ -275,7 +275,7 @@ agentbld render --sync --mode='codex:{"skills":false}' --sections-dir "$PWD/sect
 | `skills` | Standalone `skills/` | On |
 
 - **Destination** — `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Override with `--claude-dir`.
-- **Plugin setup** — [Claude Code in the agentbld guide](utils/agentbld/README.md#claude-code).
+- **Plugin setup** — [Claude Code in the agentbld guide][agentbld-claude].
 - **Discovery** — [Instructions](https://code.claude.com/docs/en/memory) ·
   [Skills](https://code.claude.com/docs/en/skills).
 
@@ -318,5 +318,10 @@ agentbld reset --render-dir "$state_root" --codex-dir "${CODEX_HOME:-$HOME/.code
 
 ## Development
 
-- Run `go -C utils/agentbld test ./...`.
-- See the [agentbld guide](utils/agentbld/README.md) for command details.
+- Agentbld development and tests live in [NonLogicalDev/tool.agentbld][agentbld].
+- Run `go test ./...` from the standalone checkout.
+
+[agentbld]: https://github.com/NonLogicalDev/tool.agentbld
+[agentbld-install]: https://github.com/NonLogicalDev/tool.agentbld#run-or-install
+[agentbld-profiles]: https://github.com/NonLogicalDev/tool.agentbld#sync-profiles
+[agentbld-claude]: https://github.com/NonLogicalDev/tool.agentbld#claude-code
