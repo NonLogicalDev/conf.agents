@@ -13,25 +13,21 @@ Use this skill when the user asks for a checkpoint or the task calls for one.
 - Use its usual version control tool and commit command.
 - Include changes that belong to the task, including new, staged, and unstaged files.
 - Leave unrelated changes alone. If work from different tasks is mixed, ask before changing or committing anything.
-- Follow the project's usual commit hooks and message style.
-- Check that the commit was created and say what it saved.
+- Follow the project's usual commit hooks.
+- Verify the checkpoint's subject and report what it saved.
 
 Do not switch branches, rewrite history, push, or publish unless the user asks. If there are no changes, do not create an empty commit unless asked.
 
-## Write the message
+## Write the subject
 
-Use the project's usual style for commit messages if it has one. Otherwise use:
-
-```text
-checkpoint[YYYY-MM-DDTHH:MM:SSZ] :: <what this checkpoint saves>
-```
-
-Use the actual UTC time and describe the changes in a few words:
+Use this subject for every checkpoint created with this skill.
 
 ```text
-checkpoint[2026-07-27T18:42:00Z] :: save parser fix and regression test
+agent:checkpoint - <short note>
 ```
+
+Replace `<short note>` with a few words describing the saved work. For example, `agent:checkpoint - save parser fix and regression test`.
 
 ## Tests
 
-Read [tests/README.md](tests/README.md) when changing this skill.
+When changing this skill, read [tests/README.md](tests/README.md). Run the relevant scenarios with fresh subagents that have empty context windows.

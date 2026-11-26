@@ -1,7 +1,5 @@
 # Checkpoint tests
 
-Run each case in [scenarios.md](scenarios.md) with a fresh agent when one is available. Give it [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint) and the prompt, not the answer.
+Run each case in [scenarios.md](scenarios.md) with a fresh subagent that has an empty context window. Give it the skill invocation and the prompt. Keep the expectations private and the exercise read-only.
 
-Do not create commits or change files while running this check.
-
-Check that the agent chooses the project's version control tool, includes the right changes, leaves unrelated work alone, and writes a clear checkpoint message.
+Record the response and compare it with the expectations. When repairing a skill, run the same prompt before and after the change. Include the pressure variant when one is listed.

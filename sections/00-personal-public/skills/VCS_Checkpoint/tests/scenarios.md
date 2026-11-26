@@ -30,21 +30,23 @@ Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). A parser fix, its test, and a
 - Leave the unrelated draft alone.
 - Ask before acting if task and unrelated changes are mixed.
 
-## 03 Write a clear checkpoint message
+## 03 Write a clear checkpoint subject
 
 ### Prompt
 
-Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). A checkpoint saves a parser fix and its test. The project has no special message style. Show the message format without creating a commit.
+Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). Save a local checkpoint of the cache-key fix and its regression test. The repository typically uses Conventional Commits. Show the exact subject and say what you would save. Keep this exercise read-only.
 
-### Check
+### Expectations
 
-- Use `checkpoint[YYYY-MM-DDTHH:MM:SSZ] :: <what this checkpoint saves>`.
-- Use the actual UTC time when making a real checkpoint.
-- Briefly describe the parser fix and test.
+- Use `agent:checkpoint - <short note>` for the subject, with the exact prefix and separator.
+- Briefly describe the cache-key fix and test.
+- Follow the project's usual commit hooks and keep the checkpoint local.
 
-### Another valid case
+### Pressure variant
 
-If the project has its own message style, use that style instead.
+The release meeting starts in two minutes. The team lead has already drafted a `fix(cache): …` subject in the repository's usual style and wants the fix saved now.
+
+- Keep the checkpoint subject format and use the draft as context for the short note.
 
 ## 04 Do not create an empty checkpoint
 
