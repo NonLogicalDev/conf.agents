@@ -6,20 +6,24 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/engine"
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 // claudeMode selects Claude instructions, standalone skills, and plugin output.
+const defaultPluginName = "skillset"
+
+var pluginNamePattern = regexp.MustCompile("^[a-z0-9][a-z0-9_-]*$")
+
 type claudeMode struct {
 	agents, skills, plugin, includeGuidance bool
 	pluginName                              string
 }
 
 func parseClaudeMode(raw *string) (any, error) {
-	mode := claudeMode{agents: true, skills: true, includeGuidance: true, pluginName: common.DefaultPluginName}
+	mode := claudeMode{agents: true, skills: true, includeGuidance: true, pluginName: defaultPluginName}
 	if raw == nil || *raw == "claude" {
 		return mode, nil
 	}
@@ -59,7 +63,7 @@ func parseClaudeMode(raw *string) (any, error) {
 		switch key {
 		case "plugin_name":
 			value, ok := tok.(string)
-			if !ok || !common.PluginNamePattern.MatchString(value) {
+			if !ok || !pluginNamePattern.MatchString(value) {
 				return mode, fmt.Errorf("invalid Claude plugin_name")
 			}
 			mode.pluginName = value
@@ -124,7 +128,7 @@ func decodeClaudeSnapshot(data json.RawMessage) (any, error) {
 	if err := json.Unmarshal(data, &c); err != nil {
 		return nil, err
 	}
-	if !common.PluginNamePattern.MatchString(c.PluginName) || (c.Plugin != "none" && c.Plugin != "full" && c.Plugin != "skills") {
+	if !pluginNamePattern.MatchString(c.PluginName) || (c.Plugin != "none" && c.Plugin != "full" && c.Plugin != "skills") {
 		return nil, fmt.Errorf("invalid Claude plugin config")
 	}
 	if c.Version != 1 || (!c.Agents && !c.Skills && c.Plugin == "none") || !filepath.IsAbs(c.RenderDir) || filepath.Clean(c.RenderDir) != c.RenderDir || len(c.SectionsDirs) == 0 || c.FileModes == nil || c.LayerCount < 0 || c.LayerCount > 1000000 || c.FragmentCount < 0 || c.FragmentCount > 1000000 {

@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 func TestClaudeModeParsing(t *testing.T) {
@@ -21,7 +19,7 @@ func TestClaudeModeParsing(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got != (claudeMode{agents: tc.agents, skills: tc.skills, includeGuidance: true, pluginName: common.DefaultPluginName}) {
+			if got != (claudeMode{agents: tc.agents, skills: tc.skills, includeGuidance: true, pluginName: defaultPluginName}) {
 				t.Fatalf("got %#v", got)
 			}
 		})
@@ -36,7 +34,7 @@ func TestClaudeModeParsing(t *testing.T) {
 }
 func TestClaudeSnapshotRoundTripAndValidation(t *testing.T) {
 	root := t.TempDir()
-	want := Snapshot{Version: 1, Plugin: "none", PluginName: common.DefaultPluginName, Agents: true, Skills: true, RenderDir: root, SectionsDirs: []string{filepath.Join(root, "sections")}, FileModes: map[string]uint32{"skills/A/SKILL.md": 0644}}
+	want := Snapshot{Version: 1, Plugin: "none", PluginName: defaultPluginName, Agents: true, Skills: true, RenderDir: root, SectionsDirs: []string{filepath.Join(root, "sections")}, FileModes: map[string]uint32{"skills/A/SKILL.md": 0644}}
 	data, err := json.Marshal(want)
 	if err != nil {
 		t.Fatal(err)

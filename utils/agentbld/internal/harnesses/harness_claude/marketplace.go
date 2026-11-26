@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/engine"
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 const claudeManagedMarker = ".managed-skillset.json"
@@ -27,7 +26,7 @@ func inspectClaudeMarketplace(plan *engine.RenderPlan, root, name string) (*clau
 	if !filepath.IsAbs(root) || filepath.Clean(root) != root {
 		return nil, fmt.Errorf("invalid Claude marketplace directory: %s", root)
 	}
-	if err := common.RejectSymlinkAncestors(root); err != nil {
+	if err := engine.RejectSymlinkAncestors(root); err != nil {
 		return nil, err
 	}
 	for _, path := range []string{root, filepath.Join(root, ".claude-plugin"), filepath.Join(root, "plugins")} {
@@ -49,11 +48,11 @@ func inspectClaudeMarketplace(plan *engine.RenderPlan, root, name string) (*clau
 		if err := json.Unmarshal(data, &catalog); err != nil {
 			return nil, fmt.Errorf("invalid Claude marketplace catalog: %w", err)
 		}
-		if !common.NonemptyString(catalog["name"]) {
+		if name, _ := catalog["name"].(string); strings.TrimSpace(name) == "" {
 			return nil, fmt.Errorf("Claude marketplace requires a name")
 		}
-		owner, ok := common.JSONObject(catalog["owner"])
-		if !ok || !common.NonemptyString(owner["name"]) {
+		owner, _ := catalog["owner"].(map[string]any)
+		if name, _ := owner["name"].(string); strings.TrimSpace(name) == "" {
 			return nil, fmt.Errorf("Claude marketplace requires an owner name")
 		}
 	}
@@ -85,7 +84,7 @@ func inspectClaudeMarketplace(plan *engine.RenderPlan, root, name string) (*clau
 		if json.Unmarshal(data, &saved) != nil || saved.Name != name || saved.Files == nil {
 			return nil, fmt.Errorf("invalid Claude plugin ownership marker: %s", destination)
 		}
-		actual, err := common.FileInventory(destination, claudeManagedMarker)
+		actual, err := engine.FileHashes(destination, claudeManagedMarker)
 		if err != nil {
 			return nil, err
 		}
@@ -96,11 +95,12 @@ func inspectClaudeMarketplace(plan *engine.RenderPlan, root, name string) (*clau
 	}
 	found := false
 	for _, entry := range entries {
-		item, ok := entry.(map[string]any)
-		if !ok || !common.NonemptyString(item["name"]) {
+		item, _ := entry.(map[string]any)
+		entryName, _ := item["name"].(string)
+		if strings.TrimSpace(entryName) == "" {
 			return nil, fmt.Errorf("invalid Claude marketplace entry")
 		}
-		if item["name"] != name {
+		if entryName != name {
 			continue
 		}
 		if found {
@@ -141,7 +141,7 @@ func populateClaudeMarketplace(m *claudeMarketplacePlan) error {
 	if err = os.MkdirAll(filepath.Join(plugin, ".claude-plugin"), 0755); err != nil {
 		return err
 	}
-	if err = common.WriteJSON(filepath.Join(plugin, ".claude-plugin", "plugin.json"), map[string]any{"name": m.name}); err != nil {
+	if err = engine.WriteJSON(filepath.Join(plugin, ".claude-plugin", "plugin.json"), map[string]any{"name": m.name}); err != nil {
 		return err
 	}
 	for _, dir := range engine.SortedKeys(m.plan.Dirs) {
@@ -163,11 +163,11 @@ func populateClaudeMarketplace(m *claudeMarketplacePlan) error {
 			return err
 		}
 	}
-	inventory, err := common.FileInventory(plugin, claudeManagedMarker)
+	inventory, err := engine.FileHashes(plugin, claudeManagedMarker)
 	if err != nil {
 		return err
 	}
-	if err = common.WriteJSON(filepath.Join(plugin, claudeManagedMarker), map[string]any{"name": m.name, "files": inventory}); err != nil {
+	if err = engine.WriteJSON(filepath.Join(plugin, claudeManagedMarker), map[string]any{"name": m.name, "files": inventory}); err != nil {
 		return err
 	}
 	// Recheck ownership immediately before publication.

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/engine"
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 type Snapshot struct {
@@ -60,7 +59,7 @@ func decodeCodexSnapshot(data json.RawMessage) (any, error) {
 		return nil, err
 	}
 	path := "codex"
-	if c.Version != 1 || !filepath.IsAbs(c.RenderDir) || !common.PluginNamePattern.MatchString(c.PluginName) || c.FileModes == nil || len(c.SectionsDirs) == 0 || c.LayerCount < 0 || c.LayerCount > 1000000 || c.FragmentCount < 0 || c.FragmentCount > 1000000 {
+	if c.Version != 1 || !filepath.IsAbs(c.RenderDir) || !pluginNamePattern.MatchString(c.PluginName) || c.FileModes == nil || len(c.SectionsDirs) == 0 || c.LayerCount < 0 || c.LayerCount > 1000000 || c.FragmentCount < 0 || c.FragmentCount > 1000000 {
 		return nil, fmt.Errorf("invalid or unsupported generation config: %s", path)
 	}
 	if c.Plugin != "none" && c.Plugin != "full" && c.Plugin != "skills" {

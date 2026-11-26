@@ -1,4 +1,4 @@
-package common
+package engine
 
 import (
 	"crypto/sha256"
@@ -8,26 +8,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 )
 
-var PluginNamePattern = regexp.MustCompile("^[a-z0-9][a-z0-9_-]*$")
-
-const DefaultPluginName = "skillset"
-
-func NonemptyString(value any) bool {
-	s, ok := value.(string)
-	return ok && strings.TrimSpace(s) != ""
-}
-
-func JSONObject(value any) (map[string]any, bool) {
-	m, ok := value.(map[string]any)
-	return m, ok
-}
-
-// FileInventory records package contents without following symlinks; the marker cannot hash itself.
-func FileInventory(root, excluded string) (map[string]string, error) {
+// FileHashes returns SHA-256 hashes of regular files under root, keyed by slash-separated paths.
+// It skips the excluded relative path and rejects symlinks.
+func FileHashes(root, excluded string) (map[string]string, error) {
 	files := map[string]string{}
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -64,34 +49,11 @@ func FileInventory(root, excluded string) (map[string]string, error) {
 	return files, err
 }
 
+// WriteJSON writes indented JSON to a file whose parent directory already exists.
 func WriteJSON(path string, value any) error {
 	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return err
-	}
 	return os.WriteFile(path, append(data, '\n'), 0644)
-}
-
-func RejectSymlinkAncestors(path string) error {
-	path, err := filepath.Abs(path)
-	if err != nil {
-		return err
-	}
-	for {
-		info, err := os.Lstat(path)
-		if err != nil && !os.IsNotExist(err) {
-			return err
-		}
-		if err == nil && info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("refusing a symlinked destination: %s", path)
-		}
-		parent := filepath.Dir(path)
-		if parent == path {
-			return nil
-		}
-		path = parent
-	}
 }

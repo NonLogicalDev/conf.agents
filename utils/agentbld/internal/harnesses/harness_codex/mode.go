@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
-
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
+
+const defaultPluginName = "skillset"
+
+var pluginNamePattern = regexp.MustCompile("^[a-z0-9][a-z0-9_-]*$")
 
 type syncMode struct {
 	agents          bool
@@ -19,7 +22,7 @@ type syncMode struct {
 
 // parseSyncMode validates the complete request before any destination changes.
 func parseSyncMode(raw *string) (syncMode, error) {
-	mode := syncMode{agents: true, skills: true, includeGuidance: true, pluginName: common.DefaultPluginName}
+	mode := syncMode{agents: true, skills: true, includeGuidance: true, pluginName: defaultPluginName}
 	if raw == nil || *raw == Name {
 		return mode, nil
 	}
@@ -58,7 +61,7 @@ func parseSyncMode(raw *string) (syncMode, error) {
 		}
 		if key == "plugin_name" {
 			value, ok := token.(string)
-			if !ok || !common.PluginNamePattern.MatchString(value) {
+			if !ok || !pluginNamePattern.MatchString(value) {
 				return mode, fmt.Errorf("plugin_name must begin with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, or underscores")
 			}
 			mode.pluginName = value

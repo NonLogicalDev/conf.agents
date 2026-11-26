@@ -208,8 +208,8 @@ claude plugin install skillset@agentbld
 
 - **Entry point and CLI** — `utils/agentbld/main.go` and `internal/`.
 - **Shared engine code** — `internal/engine/` handles source layering, generation storage, replay, and managed links.
+  - Shared filesystem helpers also live here.
 - **Harness engines** — under `internal/harnesses/`
-  - `common/` holds marketplace file helpers shared by the Codex and Claude adapters.
   - `harness_codex/`
   - `harness_claude/`
   - `harness_opencode/`

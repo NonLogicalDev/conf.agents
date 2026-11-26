@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 func TestMarketplaceSyncPreflightsCodexConflicts(t *testing.T) {
@@ -14,15 +12,12 @@ func TestMarketplaceSyncPreflightsCodexConflicts(t *testing.T) {
 		t.Run(component, func(t *testing.T) {
 			f := newContractFixture(t)
 			f.run("sync", 0, `--mode=codex:{"agents":true,"plugin":"full"}`)
-			plugin := filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName)
+			plugin := filepath.Join(f.home, ".agents/plugins", "skillset")
 			catalog := filepath.Join(f.home, ".agents/plugins/marketplace.json")
-			marker := filepath.Join(plugin, ".managed-skillset.json")
-			inventory, err := common.FileInventory(plugin, ".managed-skillset.json")
-			if err != nil {
-				t.Fatal(err)
-			}
+
+			inventory := f.readTree(plugin)
 			beforeCatalog := f.read(catalog)
-			beforeMarker := f.read(marker)
+
 			agents := filepath.Join(f.codex, "AGENTS.md")
 			if component == "instructions" {
 				if err := os.Remove(agents); err != nil {
@@ -44,11 +39,8 @@ func TestMarketplaceSyncPreflightsCodexConflicts(t *testing.T) {
 			// discovered only after marketplace publication.
 			f.put(f.layer, "skills/Alpha/SKILL.md", "---\nname: Alpha\ndescription: Changed\n---\nnew content\n")
 			f.run("sync", 2, `--mode=codex:{"agents":true,"plugin":"full"}`)
-			after, err := common.FileInventory(plugin, ".managed-skillset.json")
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !reflect.DeepEqual(inventory, after) || f.read(marker) != beforeMarker || f.read(catalog) != beforeCatalog {
+			after := f.readTree(plugin)
+			if !reflect.DeepEqual(inventory, after) || f.read(catalog) != beforeCatalog {
 				t.Fatal("Codex conflict changed the installed plugin or catalog")
 			}
 			switch component {

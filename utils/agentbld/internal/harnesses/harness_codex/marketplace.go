@@ -3,7 +3,6 @@ package harness_codex
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,8 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/engine"
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 const codexManagedMarker = ".managed-skillset.json"
@@ -31,7 +31,7 @@ func loadMarketplace(path string) (map[string]any, error) {
 	if err := json.Unmarshal(data, &catalog); err != nil {
 		return nil, fmt.Errorf("read marketplace %s: %w", path, err)
 	}
-	if !common.NonemptyString(catalog["name"]) {
+	if name, _ := catalog["name"].(string); strings.TrimSpace(name) == "" {
 		return nil, fmt.Errorf("marketplace must have a nonempty name: %s", path)
 	}
 	plugins, ok := catalog["plugins"].([]any)
@@ -39,23 +39,23 @@ func loadMarketplace(path string) (map[string]any, error) {
 		return nil, fmt.Errorf("marketplace plugins must be a list: %s", path)
 	}
 	if value, present := catalog["interface"]; present {
-		iface, ok := common.JSONObject(value)
-		if !ok || !common.NonemptyString(iface["displayName"]) {
+		iface, _ := value.(map[string]any)
+		if name, _ := iface["displayName"].(string); strings.TrimSpace(name) == "" {
 			return nil, fmt.Errorf("marketplace interface must have a displayName: %s", path)
 		}
 	}
 	seen := map[string]bool{}
 	for _, value := range plugins {
-		entry, ok := common.JSONObject(value)
-		if !ok || !common.NonemptyString(entry["name"]) {
+		entry, _ := value.(map[string]any)
+		name, _ := entry["name"].(string)
+		if strings.TrimSpace(name) == "" {
 			return nil, fmt.Errorf("marketplace plugin must have a nonempty name: %s", path)
 		}
-		name := entry["name"].(string)
 		if seen[name] {
 			return nil, fmt.Errorf("duplicate marketplace plugin: %s", name)
 		}
 		seen[name] = true
-		source, ok := common.JSONObject(entry["source"])
+		source, ok := entry["source"].(map[string]any)
 		if text, isString := entry["source"].(string); isString {
 			source, ok = map[string]any{"source": "local", "path": text}, true
 		}
@@ -79,11 +79,11 @@ func loadMarketplace(path string) (map[string]any, error) {
 		if kind == "npm" {
 			required = "package"
 		}
-		if required != "" && !common.NonemptyString(source[required]) {
+		if value, _ := source[required].(string); required != "" && strings.TrimSpace(value) == "" {
 			return nil, fmt.Errorf("marketplace source requires %s: %s", required, name)
 		}
 		if value, exists := entry["policy"]; exists {
-			policy, ok := common.JSONObject(value)
+			policy, ok := value.(map[string]any)
 			if !ok {
 				return nil, fmt.Errorf("invalid marketplace installation policy: %s", name)
 			}
@@ -91,12 +91,14 @@ func loadMarketplace(path string) (map[string]any, error) {
 			if installation != "AVAILABLE" && installation != "INSTALLED_BY_DEFAULT" && installation != "NOT_AVAILABLE" {
 				return nil, fmt.Errorf("invalid marketplace installation policy: %s", name)
 			}
-			if !common.NonemptyString(policy["authentication"]) {
+			if auth, _ := policy["authentication"].(string); strings.TrimSpace(auth) == "" {
 				return nil, fmt.Errorf("invalid marketplace authentication policy: %s", name)
 			}
 		}
-		if category, exists := entry["category"]; exists && !common.NonemptyString(category) {
-			return nil, fmt.Errorf("invalid marketplace category: %s", name)
+		if value, exists := entry["category"]; exists {
+			if category, _ := value.(string); strings.TrimSpace(category) == "" {
+				return nil, fmt.Errorf("invalid marketplace category: %s", name)
+			}
 		}
 	}
 	return catalog, nil
@@ -172,8 +174,7 @@ func validateMarketplaceSkills(stage string, skills map[string]string) error {
 	return nil
 }
 
-// pluginWithoutGuidance keeps the generation plan intact when standalone skills
-// include guidance but the plugin must omit it.
+// managedMarketplaceVersion checks ownership and computes the next patch version.
 func managedMarketplaceVersion(destination string) (string, bool, error) {
 	if _, err := os.Lstat(destination); err != nil {
 		if os.IsNotExist(err) {
@@ -196,7 +197,7 @@ func managedMarketplaceVersion(destination string) (string, bool, error) {
 	if err := json.Unmarshal(data, &existing); err != nil {
 		return "", false, fmt.Errorf("invalid plugin marker: %w", err)
 	}
-	inventory, err := common.FileInventory(destination, codexManagedMarker)
+	inventory, err := engine.FileHashes(destination, codexManagedMarker)
 	if err != nil {
 		return "", false, err
 	}
@@ -248,7 +249,7 @@ func inspectMarketplace(plan *engine.RenderPlan, marketplaceDir, pluginName stri
 	}
 	sourcePath := "./" + filepath.ToSlash(relative)
 	for _, path := range []string{marketplace, destination} {
-		if err := common.RejectSymlinkAncestors(path); err != nil {
+		if err := engine.RejectSymlinkAncestors(path); err != nil {
 			return marketplaceSetup{}, err
 		}
 	}
@@ -324,18 +325,21 @@ func populateMarketplace(plan *engine.RenderPlan, marketplaceDir, pluginName str
 			return nil, err
 		}
 	}
+	if err := os.MkdirAll(filepath.Join(stage, ".codex-plugin"), 0755); err != nil {
+		return nil, err
+	}
 	manifest := map[string]any{"name": pluginName, "version": version, "description": "Managed skill collection", "skills": "./skills/", "interface": map[string]any{"displayName": pluginName, "shortDescription": "Managed skills", "longDescription": "Skills from agent-config, with shared reference files.", "developerName": "Personal", "category": "Productivity", "capabilities": []any{}, "defaultPrompt": "Use my managed skill collection."}}
-	if err := common.WriteJSON(filepath.Join(stage, ".codex-plugin/plugin.json"), manifest); err != nil {
+	if err := engine.WriteJSON(filepath.Join(stage, ".codex-plugin/plugin.json"), manifest); err != nil {
 		return nil, err
 	}
 	if err := validateMarketplaceSkills(stage, plan.Skills); err != nil {
 		return nil, err
 	}
-	inventory, err := common.FileInventory(stage, codexManagedMarker)
+	inventory, err := engine.FileHashes(stage, codexManagedMarker)
 	if err != nil {
 		return nil, err
 	}
-	if err := common.WriteJSON(filepath.Join(stage, codexManagedMarker), map[string]any{"files": inventory}); err != nil {
+	if err := engine.WriteJSON(filepath.Join(stage, codexManagedMarker), map[string]any{"files": inventory}); err != nil {
 		return nil, err
 	}
 	if !matched {

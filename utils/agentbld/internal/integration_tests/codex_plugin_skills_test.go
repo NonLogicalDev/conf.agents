@@ -1,12 +1,13 @@
 package integration_tests
 
 import (
+	"fmt"
+	"io/fs"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/harnesses/common"
 )
 
 func TestSkillsPluginSkipsGuidanceBeforeValidation(t *testing.T) {
@@ -33,8 +34,8 @@ func TestSkillsPluginSkipsGuidanceBeforeValidation(t *testing.T) {
 				if out, err := exec.Command(contractBinary, args...).CombinedOutput(); err != nil {
 					t.Fatalf("skills sync failed: %v\n%s", err, out)
 				}
-				f.absent(filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName, "skills/Agent_Guidance"))
-				if got := f.read(filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName, "skills/Alpha/SKILL.md")); got == "" {
+				f.absent(filepath.Join(f.home, ".agents/plugins", "skillset", "skills/Agent_Guidance"))
+				if got := f.read(filepath.Join(f.home, ".agents/plugins", "skillset", "skills/Alpha/SKILL.md")); got == "" {
 					t.Fatal("other skill missing")
 				}
 				if agents {
@@ -52,7 +53,7 @@ func TestSkillsPluginStillValidatesOtherSkills(t *testing.T) {
 	f := newContractFixture(t)
 	f.put(f.layer, "skills/Alpha/SKILL.md", "invalid metadata\n")
 	f.run("sync", 2, "--mode", `codex:{"plugin":"skills","agents":false}`)
-	f.absent(filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName))
+	f.absent(filepath.Join(f.home, ".agents/plugins", "skillset"))
 }
 
 func TestCheckSkillsGenerationWithoutChangingPlugin(t *testing.T) {
@@ -60,21 +61,15 @@ func TestCheckSkillsGenerationWithoutChangingPlugin(t *testing.T) {
 	f.put(f.layer, "skills/Agent_Guidance/SKILL.md", "---\nname: Agent_Guidance\ndescription: Guidance\n---\n{{%_agents_%}}\n")
 	mode := `codex:{"plugin":"skills"}`
 	f.run("sync", 0, "--mode", mode)
-	plugin := filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName)
-	before, err := common.FileInventory(plugin, ".managed-skillset.json")
-	if err != nil {
-		t.Fatal(err)
-	}
+	plugin := filepath.Join(f.home, ".agents/plugins", "skillset")
+	before := f.readTree(plugin)
 	catalog := filepath.Join(f.home, ".agents/plugins/marketplace.json")
 	beforeCatalog := f.read(catalog)
-	beforeMarker := f.read(filepath.Join(plugin, ".managed-skillset.json"))
+
 	f.run("check", 0, "--mode", mode)
 	f.run("check", 1)
-	after, err := common.FileInventory(plugin, ".managed-skillset.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(before, after) || f.read(catalog) != beforeCatalog || f.read(filepath.Join(plugin, ".managed-skillset.json")) != beforeMarker {
+	after := f.readTree(plugin)
+	if !reflect.DeepEqual(before, after) || f.read(catalog) != beforeCatalog {
 		t.Fatal("check changed plugin or catalog")
 	}
 	f.run("check", 1, "--mode", `codex:{"agents":false,"plugin":"skills"}`)
@@ -86,9 +81,9 @@ func TestPluginOnlySkipsUnselectedRules(t *testing.T) {
 			f := newContractFixture(t)
 			f.put(f.layer, "rules/invalid.txt", "not a rule\n")
 			f.run("sync", 2, `--mode=codex:{"agents":true,"plugin":"full"}`)
-			f.absent(filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName))
+			f.absent(filepath.Join(f.home, ".agents/plugins", "skillset"))
 			f.run("sync", 0, "--mode", `codex:{"agents":false,"plugin":"`+plugin+`"}`)
-			root := filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName)
+			root := filepath.Join(f.home, ".agents/plugins", "skillset")
 			f.absent(filepath.Join(root, "rules"))
 			if f.read(filepath.Join(root, "skills/Alpha/SKILL.md")) == "" {
 				t.Fatal("skill missing")
@@ -104,21 +99,15 @@ func TestCheckFullPluginGenerationWithoutChangingPlugin(t *testing.T) {
 	f.put(f.layer, "skills/Agent_Guidance/SKILL.md", "---\nname: Agent_Guidance\ndescription: Guidance\n---\n{{%_agents_%}}\n")
 	mode := `codex:{"plugin":"full","agents":true}`
 	f.run("sync", 0, "--mode", mode)
-	plugin := filepath.Join(f.home, ".agents/plugins", common.DefaultPluginName)
-	before, err := common.FileInventory(plugin, ".managed-skillset.json")
-	if err != nil {
-		t.Fatal(err)
-	}
+	plugin := filepath.Join(f.home, ".agents/plugins", "skillset")
+	before := f.readTree(plugin)
 	catalog := filepath.Join(f.home, ".agents/plugins/marketplace.json")
 	beforeCatalog := f.read(catalog)
-	beforeMarker := f.read(filepath.Join(plugin, ".managed-skillset.json"))
+
 	f.run("check", 0, "--mode", mode)
 	f.run("check", 1)
-	after, err := common.FileInventory(plugin, ".managed-skillset.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(before, after) || f.read(catalog) != beforeCatalog || f.read(filepath.Join(plugin, ".managed-skillset.json")) != beforeMarker {
+	after := f.readTree(plugin)
+	if !reflect.DeepEqual(before, after) || f.read(catalog) != beforeCatalog {
 		t.Fatal("check changed plugin or catalog")
 	}
 	f.run("check", 1, "--mode", `codex:{"agents":false,"plugin":"full"}`)
@@ -133,4 +122,31 @@ func TestStandaloneSkillsAndPluginSkipUnselectedRules(t *testing.T) {
 	f.absent(filepath.Join(f.codex, "AGENTS.md"))
 	f.absent(filepath.Join(f.codex, "rules"))
 	f.run("check", 0, "--mode", mode)
+}
+
+// readTree includes ownership markers and manifests in the before-and-after comparison.
+func (f *contractFixture) readTree(root string) map[string]string {
+	f.t.Helper()
+	files := map[string]string{}
+	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("unexpected file type: %s", path)
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		files[path] = string(data)
+		return nil
+	})
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	return files
 }
