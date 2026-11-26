@@ -76,7 +76,7 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/agentbld/
 | `sync <number>` | Activate a saved generation | Ordinal and destinations |
 | `modes` | List harness options and examples | — |
 | `prune` | Keep the five newest generations | State root with no active links to older generations |
-| `reset` | Back up Codex config and remove stale managed links | Codex destination and source paths |
+| `reset` | Back up Codex config and remove stale managed links | Codex destination and state root |
 
 - **Check exit codes**
   - `0` — current
@@ -86,7 +86,7 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/agentbld/
   - Uses the saved files and options. Omit source flags.
   - Leaves `latest` pointing to the newest generation.
   - Repeat bare `--mode` names to select harnesses.
-  - Requires `config.json`. Render again before syncing a generation that predates it.
+  - Requires the current generation layout and `config.json`. Render into a fresh state directory when upgrading.
 
 ```sh
 # From the repository root.
@@ -94,6 +94,55 @@ agentbld render --sections-dir "$PWD/sections"
 agentbld check --sections-dir "$PWD/sections"
 agentbld render --sync --sections-dir "$PWD/sections"
 agentbld sync 1  # Replace 1 with the ordinal printed by render.
+```
+
+## Sync profiles
+
+```sh
+agentbld sync 1 --mode=codex --codex-dir /path/to/codex --save-profile work
+agentbld sync 2 --profile work
+agentbld profile list
+agentbld profile show work
+```
+
+| Setting | Behavior |
+| --- | --- |
+| Directory | `${XDG_CONFIG_HOME:-$HOME/.config}/agentbld/` |
+| Default file | `default.json`, selected with `--profile default` |
+| Named file | `<name>.json`, selected with `--profile <name>` |
+| List profiles | `agentbld profile list` prints names in alphabetical order |
+| Inspect a profile | `agentbld profile show NAME` prints its JSON. Use `default` to inspect `default.json`. |
+| Save | `--save-profile <name>` creates or replaces the file after successful activation |
+| Precedence | Explicit sync flags, then the selected profile, then the normal defaults |
+
+- **Saved fields**
+  - `render_dir`
+  - `modes`, a list of selected harness names
+  - Destination fields for the selected harnesses
+- **Portable paths**
+  - Saved paths under your home directory start with `~/`. Sync expands them against the current home.
+  - Paths outside your home stay absolute.
+- **Selection** — omit `--profile` to use regular flags and defaults.
+- **Generation** — pass its ordinal each time. Each generation supplies its own mode options.
+- **Mode overrides** — supplying `--mode` replaces the profile's entire harness list for that invocation.
+- **Names** — start with a letter or digit and use letters, digits, underscores, or hyphens.
+
+Example `work.json`
+
+```json
+{
+  "render_dir": "~/.local/state/agentbld",
+  "modes": ["codex"],
+  "codex_dir": "~/.codex-work",
+  "codex_marketplace_home": "~/.agents/plugins"
+}
+```
+
+Save or select the profile named `default`.
+
+```sh
+agentbld sync 2 --profile work --save-profile default
+agentbld sync 3 --profile default
 ```
 
 ## Harnesses
@@ -112,7 +161,7 @@ agentbld sync 1  # Replace 1 with the ordinal printed by render.
 | `--codex-dir` | `${CODEX_HOME:-$HOME/.codex}` |
 | `--codex-marketplace-home` | `$HOME/.agents/plugins` |
 
-See [Codex examples, mode options, legacy flags, and command rules](../../README.md#codex).
+See [Codex examples, mode options and command rules](../../README.md#codex).
 
 ### OpenCode
 
@@ -157,7 +206,14 @@ claude plugin install skillset@agentbld
 
 ## Development
 
-- Command entry point in `utils/agentbld`. Implementation in `internal/`.
-- **Harness-specific code** — `codex_`, `opencode_`, and `claude_` files.
-- **Shared code** — source layering, resource bundling, and generation handling.
-- Run `go -C utils/agentbld test ./...` from the repository root.
+- **Entry point and CLI** — `utils/agentbld/main.go` and `internal/`.
+- **Shared engine code** — `internal/engine/` handles source layering, generation storage, replay, and managed links.
+- **Harness engines** — under `internal/harnesses/`
+  - `common/` holds marketplace file helpers shared by the Codex and Claude adapters.
+  - `harness_codex/`
+  - `harness_claude/`
+  - `harness_opencode/`
+- **Tests**
+  - Unit tests live beside the code they exercise.
+  - CLI integration tests build and run the binary from `internal/integration_tests/`.
+  - Run `go -C utils/agentbld test ./...` from the repository root.

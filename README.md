@@ -32,12 +32,12 @@ agentbld check --sections-dir "$PWD/sections" --render-dir "$state_root"
 
 **Replay a generation**
 
-1. Take the ordinal from the render output. Omit `--sections-dir` and `--config-dir`.
+1. Take the ordinal from the render output. Omit `--sections-dir`.
 2. Omit `--mode` for all saved harnesses, or repeat bare names such as `--mode=opencode` for a subset.
 3. Pass the destination flags for this run. Repeat the same ordinal to sync to other destinations.
 
 - **Saved state** — numbered sync uses the generation's files and options. The `latest` pointer stays put.
-- **Older generations** — a generation without `config.json` can be pruned. Render again before numbered sync.
+- **Generation format** — use a fresh `--render-dir` when upgrading from an older layout. Render there before syncing.
 
 ```sh
 agentbld render --sync --sections-dir "$PWD/sections" --render-dir "$state_root"
@@ -47,6 +47,14 @@ agentbld sync 2 --render-dir "$state_root"
 agentbld sync 2 --render-dir "$state_root" --mode=opencode --opencode-dir /path/to/opencode
 agentbld sync 2 --render-dir "$state_root" --mode=claude --claude-dir /path/to/claude
 ```
+
+### Sync profiles
+
+- Save sync parameters with `--save-profile NAME`. Reuse them with `--profile NAME`.
+- Use `--profile default` to select `default.json`. Sync without `--profile` uses regular flags and defaults.
+- Pass the generation ordinal each time. Explicit flags override saved settings.
+- Find names with `agentbld profile list` and inspect settings with `agentbld profile show NAME`.
+- See [sync profiles](utils/agentbld/README.md#sync-profiles) for the file format and precedence.
 
 ## Source sections
 
@@ -87,7 +95,6 @@ agentbld render \
 
 - **Optional components** — omit any section component you do not need.
 - **Plugin source** — put skills in `skills/`. A section-level `marketplace/` directory is rejected.
-- **Legacy source flag** — `--config-dir` takes a repository root. Choose one source flag style per invocation.
 
 ### Instructions and skills
 
@@ -215,9 +222,6 @@ agentbld render --sync --sections-dir "$PWD/sections" --mode=codex --mode=openco
   - Sync preserves other catalog entries and existing policy. Local package edits and unsafe symlinks block sync.
   - Register or install the plugin through Codex. Publish it separately.
   - For a separate discoverable marketplace, use `<marketplace-root>/.agents/plugins`.
-- **Legacy render flags**
-  - `--skill-marketplace`, `--instructions-only`, and `--rules-only`.
-  - Choose one and use it without `--mode`.
 
 ```sh
 # Generate and sync a full plugin.
@@ -240,10 +244,10 @@ agentbld render --sync --sections-dir "$PWD/sections" --mode='codex:{"plugin":"f
 - **Rule links** — removing a source removes its managed link on the next sync. Unrelated rules stay in place.
   Unmanaged conflicts block sync. Prune protects generations referenced by active rule links.
 
-**Update rules only**
+**Update instructions, resources, and rules**
 
 ```sh
-agentbld render --sync --rules-only --sections-dir "$PWD/sections" --render-dir "$state_root"
+agentbld render --sync --mode='codex:{"skills":false}' --sections-dir "$PWD/sections" --render-dir "$state_root"
 ```
 
 ### OpenCode
@@ -284,7 +288,7 @@ Prune keeps the five newest generations when both checks pass.
   destinations for active instructions, skills, resources, rules, and native plugin links.
 
 ```sh
-agentbld prune --sections-dir "$PWD/sections" --render-dir "$state_root"
+agentbld prune --render-dir "$state_root"
 ```
 
 ## Reset explicitly
@@ -292,17 +296,14 @@ agentbld prune --sections-dir "$PWD/sections" --render-dir "$state_root"
 | Step | What reset does |
 | --- | --- |
 | Back up | Save instructions as `AGENTS.<epoch>.bak.md` and skills as `skills.<epoch>.bak`. |
-| Remove | Remove stale direct skill links and managed legacy resource links. |
+| Remove | Remove managed skill and resource links for the selected render directory. |
 | Leave in place | Live skill directories, regular files, unrelated links, nested links, and rule links. |
 
 - **Backups** — both names use the same timestamp when both backups are needed. The skills backup is complete.
-- **Legacy resource links**
-  - A source named `sections` identifies `agent-config-rendered` beside its repository.
-  - A different source directory name leaves those links alone.
 - **Activation** — use render and sync separately after reset.
 
 ```sh
-agentbld reset --sections-dir "$PWD/sections" --codex-dir "${CODEX_HOME:-$HOME/.codex}"
+agentbld reset --render-dir "$state_root" --codex-dir "${CODEX_HOME:-$HOME/.codex}"
 ```
 
 ## Public sharing

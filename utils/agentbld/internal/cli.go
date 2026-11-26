@@ -8,38 +8,31 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
+
+	"github.com/NonLogicalDev/conf.agents/utils/agentbld/internal/engine"
 )
 
 type cli struct {
-	SectionsDirs         []string        `name:"sections-dir" type:"path" sep:"none" help:"Sections directory; repeat in precedence order."`
-	ConfigDirs           []string        `name:"config-dir" type:"path" sep:"none" hidden:"" help:"Legacy repository root."`
-	RenderDir            string          `type:"path" help:"Rendered generations directory (default: $XDG_STATE_HOME/agentbld or $HOME/.local/state/agentbld)."`
-	OpenCodeDir          string          `name:"opencode-dir" type:"path" help:"OpenCode destination directory (default: $OPENCODE_CONFIG_DIR or $HOME/.config/opencode)."`
-	ClaudeDir            string          `type:"path" help:"Claude Code destination directory (default: $HOME/.claude)."`
-	ClaudeMarketplaceDir string          `type:"path" help:"Claude Code marketplace root (default: $XDG_DATA_HOME/agentbld/claude-marketplace or $HOME/.local/share/agentbld/claude-marketplace)."`
-	CodexDir             string          `type:"path" help:"Codex destination directory (default: $CODEX_HOME or $HOME/.codex)."`
-	CodexMarketplaceHome *string         `type:"path" help:"Directory for marketplace.json and generated plugins (default: $HOME/.agents/plugins)."`
-	Home                 *string         `type:"path" hidden:"" help:"Legacy home directory; maps to <home>/.agents/plugins."`
-	Mode                 []string        `name:"mode" sep:"none" help:"Harness mode; repeat once per harness. For sync, bare names select saved harnesses. Run 'agentbld modes' for options."`
-	Render               renderFlags     `cmd:"" help:"Create or reuse an immutable generation."`
-	Check                struct{}        `cmd:"" help:"Check whether the latest generation matches the source."`
-	Sync                 generationFlags `cmd:"" help:"Activate an existing generation by number."`
-	Prune                struct{}        `cmd:"" help:"Remove old, inactive generations."`
-	Reset                struct{}        `cmd:"" help:"Back up and reset Codex links."`
-	Modes                struct{}        `cmd:"" help:"Explain the available modes and their options."`
-	operation            string
-}
-type syncFlags struct {
-	SkillMarketplace bool `help:"Populate the personal skill marketplace instead of the skills directory."`
-	InstructionsOnly bool `help:"Sync instructions and resources and remove managed skill links."`
-	RulesOnly        bool `help:"Sync only managed Codex rule links."`
+	Harness      harnessOptions  `embed:""`
+	SectionsDirs []string        `name:"sections-dir" type:"path" sep:"none" help:"Sections directory; repeat in precedence order."`
+	RenderDir    string          `type:"path" help:"Rendered generations directory (default: $XDG_STATE_HOME/agentbld or $HOME/.local/state/agentbld)."`
+	Mode         []string        `name:"mode" sep:"none" help:"Harness mode; repeat once per harness. For sync, bare names select saved harnesses. Run 'agentbld modes' for options."`
+	Render       renderFlags     `cmd:"" help:"Create or reuse an immutable generation."`
+	Check        struct{}        `cmd:"" help:"Check whether the latest generation matches the source."`
+	Sync         generationFlags `cmd:"" help:"Activate an existing generation by number."`
+	Profile      profileCommands `cmd:"" help:"Inspect saved sync profiles."`
+	Prune        struct{}        `cmd:"" help:"Remove old, inactive generations."`
+	Reset        struct{}        `cmd:"" help:"Back up configuration and reset managed links."`
+	Modes        struct{}        `cmd:"" help:"Explain the available modes and their options."`
+	operation    string
 }
 type renderFlags struct {
-	Sync   bool      `help:"Activate the rendered generation."`
-	Legacy syncFlags `embed:""`
+	Sync bool `help:"Activate the rendered generation."`
 }
 type generationFlags struct {
-	Number int `arg:"" help:"Generation ordinal to activate."`
+	Number      int     `arg:"" help:"Generation ordinal to activate."`
+	Profile     *string `placeholder:"NAME" help:"Load sync settings from the named profile."`
+	SaveProfile *string `placeholder:"NAME" help:"Save resolved sync settings to a named JSON profile after activation."`
 }
 
 func Main() int {
@@ -51,8 +44,11 @@ func Main() int {
 		return 2
 	}
 	args.operation = strings.Fields(ctx.Command())[0]
+	if args.operation == "profile" {
+		args.operation += " " + ctx.Selected().Name
+	}
 	if args.operation == "modes" {
-		printModes()
+		printModes(configuredHarnesses(&args))
 		return 0
 	}
 	code, err := run(args)
@@ -63,38 +59,11 @@ func Main() int {
 	return code
 }
 
-// defaultHome resolves the user's home alias so default paths stay consistent
-// on systems where /home is a symlink. Explicit paths retain their spelling.
-func defaultHome() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	resolved, err := filepath.EvalSymlinks(home)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return home, nil
-		}
-		return "", err
-	}
-	return resolved, nil
-}
-
-func absolute(p string) (string, error) {
-	if len(p) > 0 && p[0] == '~' && (len(p) == 1 || p[1] == '/') {
-		h, e := defaultHome()
-		if e != nil {
-			return "", e
-		}
-		p = filepath.Join(h, p[1:])
-	}
-	return filepath.Abs(p)
-}
 func renderRoot(path string) (string, error) {
 	if path == "" {
 		state := os.Getenv("XDG_STATE_HOME")
 		if state == "" {
-			home, e := defaultHome()
+			home, e := engine.DefaultHome()
 			if e != nil {
 				return "", e
 			}
@@ -102,219 +71,126 @@ func renderRoot(path string) (string, error) {
 		}
 		path = filepath.Join(state, "agentbld")
 	}
-	return absolute(path)
+	return engine.Absolute(path)
 }
-func marketplacePath(a cli) (string, error) {
-	if a.CodexMarketplaceHome != nil && a.Home != nil {
-		return "", fmt.Errorf("--codex-marketplace-home and --home cannot be combined")
-	}
-	path := ""
-	if a.CodexMarketplaceHome != nil {
-		path = *a.CodexMarketplaceHome
-	}
-	if a.Home != nil {
-		home, e := absolute(*a.Home)
-		if e != nil {
-			return "", e
-		}
-		path = filepath.Join(home, ".agents", "plugins")
-	}
-	if path == "" {
-		home, e := defaultHome()
-		if e != nil {
-			return "", e
-		}
-		path = filepath.Join(home, ".agents", "plugins")
-	}
-	return absolute(path)
-}
-func claudeMarketplacePath(path string) (string, error) {
-	if path == "" {
-		data := os.Getenv("XDG_DATA_HOME")
-		if data == "" {
-			home, err := defaultHome()
-			if err != nil {
-				return "", err
-			}
-			data = filepath.Join(home, ".local", "share")
-		}
-		path = filepath.Join(data, "agentbld", "claude-marketplace")
-	}
-	return absolute(path)
-}
-func codexPath(path string) (string, error) {
-	if path == "" {
-		path = os.Getenv("CODEX_HOME")
-		if path == "" {
-			home, e := defaultHome()
-			if e != nil {
-				return "", e
-			}
-			path = filepath.Join(home, ".codex")
-		}
-	}
-	return absolute(path)
-}
-func printConfig(command string, s snapshot, number int, codex, marketplace string, a cli) error {
+func printConfig(command string, registry engine.Registry, s engine.Snapshot, number int, resolved map[string]engine.Destination) error {
+	fields := map[string]any{"command": command, "generation": number, "modes": s}
 	destinations := map[string]string{}
-	if _, ok := s["opencode"]; ok {
-		p, err := openCodePath(a.OpenCodeDir)
-		if err != nil {
-			return err
-		}
-		destinations["opencode_dir"] = p
-	}
-	if _, ok := s["claude"]; ok {
-		p, err := claudePath(a.ClaudeDir)
-		if err != nil {
-			return err
-		}
-		destinations["claude_dir"] = p
-		if c, ok := s["claude"].(snapshotClaude); ok && c.Plugin != "none" && c.Plugin != "" {
-			market, err := claudeMarketplacePath(a.ClaudeMarketplaceDir)
-			if err != nil {
-				return err
+	for _, name := range engine.SortedKeys(s) {
+		handler := registry[name]
+		if handler.ConfigReport != nil {
+			values, paths := handler.ConfigReport(s[name], resolved[name])
+			for key, value := range values {
+				fields[key] = value
 			}
-			destinations["claude_marketplace_dir"] = market
+			for key, path := range paths {
+				destinations[key] = path
+			}
 		}
 	}
-	// Report the settings which will actually be applied, before any mutation.
-	c, ok := s["codex"].(snapshotCodex)
-	if !ok {
-		b, err := json.Marshal(map[string]any{"command": command, "generation": number, "modes": s, "destinations": destinations})
-		if err != nil {
-			return err
-		}
-		fmt.Printf("config: %s\n", b)
-		return nil
+	fields["destinations"] = destinations
+	data, err := json.Marshal(fields)
+	if err != nil {
+		return err
 	}
-	result := struct {
-		Command      string            `json:"command"`
-		Generation   int               `json:"generation,omitempty"`
-		Sections     []string          `json:"sections_dirs"`
-		RenderDir    string            `json:"render_dir"`
-		CodexDir     string            `json:"codex_dir"`
-		Marketplace  string            `json:"codex_marketplace_home"`
-		Agents       bool              `json:"agents"`
-		Skills       bool              `json:"skills"`
-		Plugin       string            `json:"plugin"`
-		PluginName   string            `json:"plugin_name"`
-		Legacy       any               `json:"legacy"`
-		Modes        snapshot          `json:"modes"`
-		Destinations map[string]string `json:"destinations"`
-	}{command, number, c.SectionsDirs, c.RenderDir, codex, marketplace, c.Agents && !c.Legacy.RulesOnly, c.Skills && !c.Legacy.InstructionsOnly && !c.Legacy.RulesOnly, c.Plugin, c.PluginName, c.Legacy, s, destinations}
-	b, e := json.Marshal(result)
-	if e != nil {
-		return e
-	}
-	fmt.Printf("config: %s\n", b)
+	fmt.Printf("config: %s\n", data)
 	return nil
 }
+
 func run(a cli) (int, error) {
+	switch a.operation {
+	case "profile list":
+		return 0, listProfiles()
+	case "profile show":
+		return 0, showProfile(a.Profile.Show.Name)
+	}
+	registry := configuredHarnesses(&a)
+	if a.operation == "sync" && a.Sync.Profile != nil {
+		if err := loadSyncProfile(&a, registry, *a.Sync.Profile); err != nil {
+			return 2, err
+		}
+	}
 	root, err := renderRoot(a.RenderDir)
 	if err != nil {
 		return 2, err
 	}
 	if a.operation == "sync" {
-		return runNumberedSync(a, root)
+		return runNumberedSync(a, registry, root)
 	}
 	if (a.operation == "prune" || a.operation == "reset") && len(a.Mode) > 0 {
 		return 2, fmt.Errorf("--mode applies to render and check")
 	}
-	if len(a.SectionsDirs) > 0 && len(a.ConfigDirs) > 0 {
-		return 2, fmt.Errorf("--sections-dir and --config-dir cannot be mixed")
-	}
-	if len(a.SectionsDirs) == 0 && len(a.ConfigDirs) == 0 {
+	if len(a.SectionsDirs) == 0 && (a.operation == "render" || a.operation == "check") {
 		return 2, fmt.Errorf("at least one --sections-dir is required")
 	}
-	var sections, legacyRoots []string
-	for _, config := range a.ConfigDirs {
-		p, e := absolute(config)
-		if e != nil {
-			return 2, e
-		}
-		sections = append(sections, filepath.Join(p, "sections"))
-		legacyRoots = append(legacyRoots, filepath.Join(filepath.Dir(p), "agent-config-rendered"))
-	}
+	var sections []string
 	for _, section := range a.SectionsDirs {
-		p, e := absolute(section)
+		p, e := engine.Absolute(section)
 		if e != nil {
 			return 2, e
 		}
 		sections = append(sections, p)
-		if filepath.Base(p) == "sections" {
-			legacyRoots = append(legacyRoots, filepath.Join(filepath.Dir(filepath.Dir(p)), "agent-config-rendered"))
-		}
 	}
-	codex, e := codexPath(a.CodexDir)
+	modes, e := parseModes(a.Mode, registry)
 	if e != nil {
 		return 2, e
 	}
-	market, e := marketplacePath(a)
-	if e != nil {
-		return 2, e
-	}
-	flags := a.Render.Legacy
-	if flags.InstructionsOnly && flags.SkillMarketplace {
-		return 2, fmt.Errorf("--skill-marketplace and --instructions-only are mutually exclusive")
-	}
-	if flags.RulesOnly && (flags.SkillMarketplace || flags.InstructionsOnly) {
-		return 2, fmt.Errorf("--rules-only requires no other sync mode")
-	}
-	modes, e := parseModes(a.Mode, flags)
-	if e != nil {
-		return 2, e
-	}
-	if _, ok := modes["codex"]; !ok && (flags.SkillMarketplace || flags.InstructionsOnly || flags.RulesOnly) {
-		return 2, fmt.Errorf("legacy sync flags require the codex mode")
-	}
-	// Each resolved harness is retained for planning and snapshot creation.
-	stub := snapshot{}
-	registry := harnessRegistry()
-	for _, name := range sortedKeys(modes) {
+	stub := engine.Snapshot{}
+	for _, name := range engine.SortedKeys(modes) {
 		handler, ok := registry[name]
 		if !ok {
 			return 2, fmt.Errorf("unsupported harness %q", name)
 		}
-		value, err := handler.stub(modes[name], flags, sections, root)
+		value, err := handler.Stub(modes[name], sections, root)
 		if err != nil {
 			return 2, err
 		}
 		stub[name] = value
 	}
-	if e = printConfig(a.operation, stub, 0, codex, market, a); e != nil {
+	destinations, e := resolveSyncDestinations(registry, stub)
+	if e != nil {
+		return 2, e
+	}
+	if e = printConfig(a.operation, registry, stub, 0, destinations); e != nil {
 		return 2, e
 	}
 	if a.operation == "reset" {
 		for _, p := range sections {
-			if len(a.SectionsDirs) > 0 && (isLink(p) || !isDir(p)) {
+			if len(a.SectionsDirs) > 0 && (engine.IsLink(p) || !engine.IsDir(p)) {
 				return 2, fmt.Errorf("missing or invalid sections directory: %s", p)
 			}
 		}
-		return 0, reset(codex, legacyRoots)
+		for _, name := range engine.SortedKeys(stub) {
+			if reset := registry[name].Reset; reset != nil {
+				if err := reset(destinations[name], root); err != nil {
+					return 2, err
+				}
+			}
+		}
+		return 0, nil
 	}
 	if a.operation == "prune" {
 		// A missing root has nothing to prune; do not create it just for a lock.
 		if _, err := os.Lstat(root); os.IsNotExist(err) {
-			return 0, prune(root, codex)
+			return 0, registry.Prune(root)
 		} else if err != nil {
 			return 2, err
 		}
-		unlock, err := lockRenderRoot(root, false)
+		unlock, err := engine.LockRenderRoot(root, false)
 		if err != nil {
 			return 2, err
 		}
 		defer unlock()
-		return 0, prune(root, codex)
+		return 0, registry.Prune(root)
 	}
-	plans := map[string]*renderPlan{}
-	snap := snapshot{}
-	for _, name := range sortedKeys(modes) {
+	plans := map[string]*engine.RenderPlan{}
+	snap := engine.Snapshot{}
+	for _, name := range engine.SortedKeys(modes) {
 		handler, ok := registry[name]
 		if !ok {
 			return 2, fmt.Errorf("unsupported harness %q", name)
 		}
-		next, value, err := handler.build(modes[name], flags, sections, root)
+		next, value, err := handler.Build(registry, modes[name], sections, root)
 		if err != nil {
 			return 2, err
 		}
@@ -324,75 +200,87 @@ func run(a cli) (int, error) {
 	if len(plans) == 0 {
 		return 2, fmt.Errorf("no supported harness selected")
 	}
-	metadata, e := snapshotBytes(snap)
+	metadata, e := engine.SnapshotBytes(snap)
 	if e != nil {
 		return 2, e
 	}
 	if a.operation == "check" {
-		gens, e := discoverGenerations(root)
+		gens, e := registry.DiscoverGenerations(root)
 		if e != nil {
 			return 2, e
 		}
 		latest := ""
 		if len(gens) > 0 {
-			latest = gens[len(gens)-1].path
+			latest = gens[len(gens)-1].Path
 		}
-		ok := latest != "" && renderedPlansMatch(latest, plans, metadata) && aliasMatches(root, latest)
+		ok := latest != "" && engine.RenderedPlansMatch(latest, plans, metadata) && engine.AliasMatches(root, latest)
 		status := "out-of-date"
 		if ok {
 			status = "up-to-date"
 		}
-		summaryPlans(plans, latest, status)
+		engine.SummaryPlans(plans, latest, status)
 		if !ok {
 			return 1, nil
 		}
 		return 0, nil
 	}
-	unlock, e := lockRenderRoot(root, true)
+	unlock, e := engine.LockRenderRoot(root, true)
 	if e != nil {
 		return 2, e
 	}
 	defer unlock()
-	gen, e := performRenderPlans(root, plans, metadata)
+	gen, e := registry.PerformRenderPlans(root, plans, metadata)
 	if e != nil {
 		return 2, e
 	}
 	if a.Render.Sync {
-		return 0, activateHarnesses(gen, root, snap, nil, a, codex, market)
+		destinations, err := resolveSyncDestinations(registry, snap)
+		if err != nil {
+			return 2, err
+		}
+		return 0, activateHarnesses(registry, gen, root, snap, snap, destinations)
 	}
 	return 0, nil
 }
-func runNumberedSync(a cli, root string) (int, error) {
+func runNumberedSync(a cli, registry engine.Registry, root string) (int, error) {
 	if a.Sync.Number <= 0 {
 		return 2, fmt.Errorf("sync requires a positive generation number")
 	}
-	if len(a.SectionsDirs) > 0 || len(a.ConfigDirs) > 0 {
-		return 2, fmt.Errorf("sync uses the generation's saved sources; do not supply --sections-dir or --config-dir")
+	if len(a.SectionsDirs) > 0 {
+		return 2, fmt.Errorf("sync uses the generation's saved sources; do not supply --sections-dir")
 	}
-	unlock, err := lockRenderRoot(root, false)
+	var profilePath string
+	if a.Sync.SaveProfile != nil {
+		path, err := profileFile(*a.Sync.SaveProfile)
+		if err != nil {
+			return 2, err
+		}
+		profilePath = path
+	}
+	unlock, err := engine.LockRenderRoot(root, false)
 	if err != nil {
 		return 2, err
 	}
 	defer unlock()
-	gens, e := discoverGenerations(root)
+	gens, e := registry.DiscoverGenerations(root)
 	if e != nil {
 		return 2, e
 	}
 	gen := ""
 	for _, g := range gens {
-		if g.ordinal == a.Sync.Number {
-			gen = g.path
+		if g.Ordinal == a.Sync.Number {
+			gen = g.Path
 			break
 		}
 	}
 	if gen == "" {
 		return 2, fmt.Errorf("generation number %d not found in %s", a.Sync.Number, root)
 	}
-	snap, e := readSnapshot(gen)
+	snap, e := registry.ReadSnapshot(gen)
 	if e != nil {
 		return 2, e
 	}
-	selected := snapshot{}
+	selected := engine.Snapshot{}
 	if len(a.Mode) == 0 {
 		for name, value := range snap {
 			selected[name] = value
@@ -412,74 +300,65 @@ func runNumberedSync(a cli, root string) (int, error) {
 			selected[name] = value
 		}
 	}
-	codex, e := codexPath(a.CodexDir)
-	if e != nil {
+	destinations, err := resolveSyncDestinations(registry, selected)
+	if err != nil {
+		return 2, err
+	}
+	if e = printConfig("sync", registry, selected, a.Sync.Number, destinations); e != nil {
 		return 2, e
 	}
-	market, e := marketplacePath(a)
-	if e != nil {
-		return 2, e
+	if err := activateHarnesses(registry, gen, root, snap, selected, destinations); err != nil {
+		return 2, err
 	}
-	if e = printConfig("sync", selected, a.Sync.Number, codex, market, a); e != nil {
-		return 2, e
+	if profilePath != "" {
+		if err := saveSyncProfile(profilePath, resolvedSyncProfile(root, selected, destinations)); err != nil {
+			return 2, fmt.Errorf("sync succeeded but saving profile %s failed: %w", profilePath, err)
+		}
+		fmt.Printf("saved profile: %s\n", profilePath)
 	}
-	return 0, activateHarnesses(gen, root, snap, selected, a, codex, market)
+	return 0, nil
 }
-func activateHarnesses(gen, root string, s, selected snapshot, a cli, codex, marketplace string) error {
-	if selected == nil {
-		selected = s
-	}
-	destinations := runtimeDestinations{Codex: codex, Marketplace: marketplace}
-	var err error
-	if _, ok := selected["opencode"]; ok {
-		destinations.OpenCode, err = openCodePath(a.OpenCodeDir)
-		if err != nil {
-			return err
-		}
-	}
-	if _, ok := selected["claude"]; ok {
-		destinations.Claude, err = claudePath(a.ClaudeDir)
-		if err != nil {
-			return err
-		}
-		if c, ok := selected["claude"].(snapshotClaude); ok && c.Plugin != "none" && c.Plugin != "" {
-			destinations.ClaudeMarketplace, err = claudeMarketplacePath(a.ClaudeMarketplaceDir)
+func resolveSyncDestinations(registry engine.Registry, selected engine.Snapshot) (map[string]engine.Destination, error) {
+	destinations := map[string]engine.Destination{}
+	for _, name := range engine.SortedKeys(selected) {
+		if resolve := registry[name].ResolveDestination; resolve != nil {
+			dest, err := resolve(selected[name])
 			if err != nil {
-				return err
+				return nil, err
 			}
+			destinations[name] = dest
 		}
 	}
+	return destinations, nil
+}
+
+func activateHarnesses(registry engine.Registry, gen, root string, s, selected engine.Snapshot, destinations map[string]engine.Destination) error {
 	paths := map[string]string{}
-	if _, ok := selected["codex"]; ok {
-		paths["codex"] = destinations.Codex
+	for name, dest := range destinations {
+		if dest.UsesConfig {
+			paths[name] = dest.Config
+		}
 	}
-	if _, ok := selected["opencode"]; ok {
-		paths["opencode"] = destinations.OpenCode
-	}
-	if c, ok := selected["claude"].(snapshotClaude); ok && (c.Agents || c.Skills) {
-		paths["claude"] = destinations.Claude
-	}
-	names := sortedKeys(paths)
+	names := engine.SortedKeys(paths)
 	for i, name := range names {
 		for _, other := range names[i+1:] {
 			a, b := paths[name], paths[other]
-			if within(a, b) || within(b, a) {
+			if engine.Within(a, b) || engine.Within(b, a) {
 				return fmt.Errorf("harness destinations overlap: %s (%s) and %s (%s)", name, a, other, b)
 			}
 		}
 	}
-	registry := harnessRegistry()
-	plans, err := restoreHarnessPlans(gen, s)
+	plans, err := registry.RestoreHarnessPlans(gen, s)
 	if err != nil {
 		return err
 	}
 	var apply []func() error
-	for _, name := range sortedKeys(selected) {
+	for _, name := range engine.SortedKeys(selected) {
 		handler, ok := registry[name]
-		if !ok || handler.prepare == nil {
+		if !ok || handler.Prepare == nil {
 			return fmt.Errorf("unsupported harness in generation: %s", name)
 		}
-		commit, err := handler.prepare(gen, root, s, plans[name], destinations)
+		commit, err := handler.Prepare(registry, gen, root, s, plans[name], destinations[name])
 		if err != nil {
 			return err
 		}
