@@ -20,9 +20,10 @@ Do not switch branches, rewrite history, push, or publish unless the user asks. 
 
 ## Write the subject
 
-- For ordinary Git, stage the changes that belong to the checkpoint. Use [git-checkpoint-save](scripts/git-checkpoint-save) after verifying the index contains only those changes. The script commits what is staged.
-- When the project requires a different commit command, pass `--subject-only` to the script and use its output with the project’s command.
-- Pass the user’s note as one quoted argument when they supply it. The default role is `agent`. Pass `--role <role>` only when the user requests a different role.
+- Prefer `git-checkpoint-save` on `PATH` when `command -v git-checkpoint-save` finds it. Otherwise, run the [bundled copy](scripts/git-checkpoint-save).
+- Pass `--role agent` explicitly with either copy. If the user requests another role, pass that role instead. Pass a supplied note as one quoted argument.
+- For ordinary Git, stage the task’s changes and verify the index contains only those changes before running the command. It commits what is staged.
+- When the project requires a different commit command, pass `--subject-only` and use its output with the project’s command.
 - With a note, the subject is `checkpoint:agent - <short note>`. Without one, it uses local time in `YYYY-DD-MMThh-mm-ss` order, for example `checkpoint:agent - 2031-17-02T14-05-06`.
 
 ## Tests

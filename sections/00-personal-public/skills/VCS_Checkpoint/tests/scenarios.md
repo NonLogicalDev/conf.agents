@@ -41,7 +41,9 @@ Use [$@:VCS_Checkpoint](skill://@/VCS_Checkpoint). A teammate asks for a local c
 - Without a note, use `checkpoint:agent - 2031-17-02T14-05-06`.
 - With a note, use `checkpoint:agent - keep cache-key fix and test`.
 - Follow the project's usual commit hooks and keep the checkpoint local.
-- Use the bundled `git-checkpoint-save` script. Use `--subject-only` if the project requires another commit command.
+- Prefer `git-checkpoint-save` on `PATH` and fall back to the bundled copy when it is unavailable.
+- Pass `--role agent` explicitly so the installed command's default role does not affect the checkpoint.
+- Use `--subject-only` if the project requires another commit command.
 
 ### Adjacent valid case
 
